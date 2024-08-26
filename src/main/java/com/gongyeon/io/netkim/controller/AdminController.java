@@ -33,7 +33,6 @@ public class AdminController {
     @PostMapping("/")
     public ResponseEntity<Void> setAuthorization(@RequestBody Map<String, String> map){
         MemberEntity member = memberRepository.findByMemberIdx(Integer.parseInt(map.get("memberIdx")));
-        
         return ResponseEntity.ok().build();
     }
 }
