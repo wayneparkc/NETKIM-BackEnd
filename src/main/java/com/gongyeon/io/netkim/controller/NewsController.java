@@ -21,9 +21,9 @@ public class NewsController {
     }
 
     @GetMapping("")
-    public String read(@RequestBody Map<String, String> str) throws Exception {
-        String location = str.get("location");
-        return newsService.read(location);
+    public String read() throws Exception {
+//        String location = str.get("location");
+        return newsService.read("str");
     }
 
     @PostMapping("")

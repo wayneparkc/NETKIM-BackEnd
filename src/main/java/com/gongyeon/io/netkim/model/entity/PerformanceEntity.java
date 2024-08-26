@@ -24,6 +24,7 @@ import java.util.StringTokenizer;
 @Builder
 @AllArgsConstructor
 public class PerformanceEntity {
+
 	/*	기본 명세
 	공연(Performance): prf
 	이름(Name): nm
@@ -31,9 +32,13 @@ public class PerformanceEntity {
 	공연장(Faculty): fclty
 	*/
     // Field
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long prfid;				//공연 ID (Primary Key) | mt20id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private long prfid;				    //공연 ID (Primary Key) | mt20id
+
+    @Column(length=10)
+    private String kopisId;             // KOPIS 관리 ID
 
     @Column
     private String prfnm;				//공연 이름
@@ -54,22 +59,25 @@ public class PerformanceEntity {
     @Column
     private String poster;				//포스터 경로
 
-    @OneToOne
-    @JoinColumn(name="theaterId")
-    private TheaterEntity fcltynm;			//공연장
+    // 공연장 명 : 공연장 속성과 연결하는 문제에 있어 고민 필요
+    // 결론 : 굳이 공연장의 모든 속성을 가질 필요는 없으며, findByTheaterName으로 연결짓는 것이 필요할 수 있다.
+    @Column
+    private String fcltynm;			//공연장명
 
-    @OneToMany
-    @JoinColumn(name="actorId")
-    private ArrayList<ActorEntity> prfcast;	//공연 캐스트 (직접 입력 필요)
+    @Column
+    private String prfcast;	//공연 캐스트 (직접 입력 필요)
 
     @Column
     private boolean openrun;			//오픈런 여부
 
     @Column
-    private LocalTime prfruntime;		//공연시간
+    private int prfruntime;	        	//공연시간(분단위)
 
     @Column
-    private String feature;	//공연 특징
+    private String feature;	            //공연 특징
+    
+    @Column
+    private String entrpsnm;            // 제작사 명
 
     // 공연 추천에 적용할 수 있는 특성
     // 1. 공연의 장르의 구분이 필요하다.

@@ -6,6 +6,7 @@ import java.util.List;
 
 public interface PerformanceService {
     List<PerformanceEntity> getAllPerformance();
-    PerformanceEntity getDetail(long prfId);
-
+    PerformanceEntity getDetail(String kopisId);
+    int insertPerformance();
+    PerformanceEntity updatePerformance(String kopisId);
 }

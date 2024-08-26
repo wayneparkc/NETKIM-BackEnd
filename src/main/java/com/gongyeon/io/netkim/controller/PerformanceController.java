@@ -28,14 +28,19 @@ public class PerformanceController {
     
     // 공연 정보 상세 조회 메서드
     @GetMapping("/{prfId}")
-    public ResponseEntity<PerformanceEntity> getPerformanceById(@PathVariable("prfId") long prfId) {
+    public ResponseEntity<PerformanceEntity> getPerformanceById(@PathVariable("prfId") String prfId) {
         PerformanceEntity performance = performanceService.getDetail(prfId);
         return new ResponseEntity<>(performance, HttpStatus.OK);
     }
     
-    // 공연 정보 추가 메서드
+    // KOPIS로 부터 공연 정보 추가 메서드 (초기세팅용)
     @PostMapping("")
-    public int addPerformance() {
-        return 0;
+    public ResponseEntity<Integer> addPerformance() {
+        return new ResponseEntity<>(performanceService.insertPerformance(), HttpStatus.CREATED);
+    }
+
+    @PutMapping("{kopisId}")
+    public ResponseEntity<PerformanceEntity> updatePerformance(@PathVariable("kopisId") String kopisId) {
+        return new ResponseEntity<>(performanceService.updatePerformance(kopisId), HttpStatus.OK);
     }
 }
