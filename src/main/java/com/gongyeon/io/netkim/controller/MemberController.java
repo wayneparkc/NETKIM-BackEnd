@@ -46,13 +46,6 @@ public class MemberController {
 
     @Operation(description = "권한 상승 요청")
     @PostMapping("/role-manager")
-    public ResponseEntity<Void> roleManager(@RequestPart MultipartFile certificate) {
-
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    @Operation(description = "권한 상승 요청")
-    @PostMapping("/role-manager")
     public ResponseEntity<Void> roleManager(@RequestHeader HttpHeaders headers, @RequestPart MultipartFile certificate) {
         return new ResponseEntity<>(HttpStatus.OK);
     }

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/")
+@RequestMapping("/api-news")
 public class NewsController {
     private final NewsService newsService;
 
@@ -36,12 +36,12 @@ public class NewsController {
         return "Complete";
     }
 
-    @GetMapping
+    @GetMapping("/file")
     public ResponseEntity<Void> getFile() {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    @GetMapping()
+    @PostMapping("/file")
     public ResponseEntity<Void> sendFile() {
 
         return new ResponseEntity<>(HttpStatus.OK);

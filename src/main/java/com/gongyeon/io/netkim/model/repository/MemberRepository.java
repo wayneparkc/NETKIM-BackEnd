@@ -3,6 +3,7 @@ package com.gongyeon.io.netkim.model.repository;
 import com.gongyeon.io.netkim.model.entity.MemberEntity;
 import org.hibernate.annotations.SQLSelect;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -16,6 +17,6 @@ public interface MemberRepository extends JpaRepository<MemberEntity, Integer> {
     // member id로 찾기
     MemberEntity findByMemberIdx(int memberIdx);
     // member 중
-    @SQLSelect(sql = "SELECT * FROM member WHERE role = 'MEMBER' AND certificate_img IS NOT NULL")
+    @Query(value = "SELECT * FROM member WHERE role = 'MEMBER' AND certificate_img IS NOT NULL", nativeQuery = true)
     List<MemberEntity> getLevelUpMembers();
 }
