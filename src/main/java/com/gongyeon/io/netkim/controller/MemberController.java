@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @Tag(name = "사용자 관리", description = "하하하하")
@@ -41,5 +42,18 @@ public class MemberController {
             return new ResponseEntity<>(HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    @Operation(description = "권한 상승 요청")
+    @PostMapping("/role-manager")
+    public ResponseEntity<Void> roleManager(@RequestPart MultipartFile certificate) {
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @Operation(description = "권한 상승 요청")
+    @PostMapping("/role-manager")
+    public ResponseEntity<Void> roleManager(@RequestHeader HttpHeaders headers, @RequestPart MultipartFile certificate) {
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

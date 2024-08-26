@@ -28,6 +28,12 @@ ext {
 }
 
 dependencies {
+    // 완성된 보도자료 발송을 위한 의존성 추가
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+    
+    // 파일 관리를 위한 의존성 추가
+    implementation 'kr.dogfoot:hwplib:1.1.6'
+
     // Token 통신을 위한 의존성 추가
     implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'

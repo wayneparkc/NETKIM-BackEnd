@@ -8,6 +8,10 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+/**
+  추후 Blue, Green 배포까지 진행하기 위한 상태 확인 Class
+*/
+
 @Entity
 @Table(name="healthtest")
 @NoArgsConstructor
@@ -18,7 +22,7 @@ public class HealthTestEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(length = 255)
+    @Column(length = 100)
     private String text;
 
     @Column(length = 30)

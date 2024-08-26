@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
-@RequestMapping({"/", "/api-health"})
+@RequestMapping({"/api-health"})
 @Tag(name="상태 점검 Class", description = "Blue, Green 배포 등 상태 점검을 위한 Controller")
 public class HealthCheckController {
     HealthTestRepository healthTestRepository;

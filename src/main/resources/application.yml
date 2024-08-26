@@ -9,10 +9,23 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://127.0.0.1:3306/netkim
     username: ssafy
-    password: ssafy
+    password: a202
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: changbin1528@gmail.com
+    password: rnfc mtwi vdiv lmpj
+    properties.mail:
+      debug: true
+      smtp.starttls:
+        enable: true
+        required: true
+      auth: false
+
 
   jpa:
-    hibernate.ddl-auto: create
+    hibernate.ddl-auto: update
     properties:
       hibernate:
         naming.physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
@@ -22,4 +35,7 @@ spring:
     open-in-view: false
 
   jwt:
-    secret: i5E1_POSE_MATE_WITH_JETSON_BOARD
+    secret: NEXT_ENTER_TAINMENT_KEY_IS_MEDIA
+
+  kopis:
+    key: 22e30f62334d4c7bb69c06e13d465711
