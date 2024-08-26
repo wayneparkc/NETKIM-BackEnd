@@ -15,6 +15,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -57,14 +58,16 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((auth) -> auth
-                        .anyRequest().permitAll());
+                        .anyRequest().permitAll())
                 // Spring Security Filter 적용하기
 //                        .requestMatchers("/", "/env", "/api-member/**").permitAll()
-//                        .requestMatchers("/admin/**").hasRole("ADMIN")
+//                        .requestMatchers("/api-member/admin/**").hasRole("ADMIN")
 //                        .anyRequest().authenticated())
 //                .addFilterBefore(new JWTFilter(memberRepository, jwtUtil), LoginFilter.class)
 //                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, "/api-member/login"), UsernamePasswordAuthenticationFilter.class)
 //                .logout((logout)-> logout.logoutUrl("/api-member/logout"));
+                .sessionManagement((session) -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         return http.build();
     }
 }

@@ -2,6 +2,8 @@ package com.gongyeon.io.netkim.controller;
 
 import com.gongyeon.io.netkim.model.service.NewsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,5 +34,16 @@ public class NewsController {
         String prfId = str.get("prfId");
         newsService.write(location, prfId);
         return "Complete";
+    }
+
+    @GetMapping
+    public ResponseEntity<Void> getFile() {
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    @GetMapping()
+    public ResponseEntity<Void> sendFile() {
+
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

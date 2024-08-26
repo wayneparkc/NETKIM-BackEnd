@@ -41,6 +41,12 @@ public class MemberEntity implements UserDetails {
     @Column
     private String profileImg;
 
+    @Column
+    private String certificateImg;
+
+    @Column
+    private String company;
+
     @Builder
     public MemberEntity(String memberId, String password, String phone, String memberName, Role role) {
         this.memberId = memberId;

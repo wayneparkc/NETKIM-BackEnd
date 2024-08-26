@@ -98,6 +98,7 @@ public class PerformanceServiceImpl implements PerformanceService {
             System.out.println("추가된 공연 DB의 수: "+res);
         }catch(Exception E) {
             System.out.println("DB를 받아오던 중 오류 발생 : "+E);
+            E.printStackTrace();
         }
         return res;
     }

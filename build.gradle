@@ -28,6 +28,9 @@ ext {
 }
 
 dependencies {
+    // 완성된 보도자료 발송을 위한 의존성 추가
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+    
     // 파일 관리를 위한 의존성 추가
     implementation 'kr.dogfoot:hwplib:1.1.6'
 
