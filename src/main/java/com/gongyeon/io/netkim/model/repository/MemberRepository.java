@@ -11,11 +11,13 @@ import java.util.List;
 @Repository
 public interface MemberRepository extends JpaRepository<MemberEntity, Integer> {
     // id 중복체크
-    boolean existsByMemberId(String memberId);
-    // 이름으로 찾기
-    MemberEntity findByMemberId(String memberId);
+    boolean existsByEmail(String email);
+    
     // member id로 찾기
-    MemberEntity findByMemberIdx(int memberIdx);
+    MemberEntity findByMemberIdx(long memberIdx);
+    
+    // email로 찾기
+    MemberEntity findByEmail(String email);
     // member 중
     @Query(value = "SELECT * FROM member WHERE role = 'MEMBER' AND certificate_img IS NOT NULL", nativeQuery = true)
     List<MemberEntity> getLevelUpMembers();

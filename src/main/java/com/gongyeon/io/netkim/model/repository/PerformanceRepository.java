@@ -9,5 +9,8 @@ import java.util.List;
 
 @Repository
 public interface PerformanceRepository extends JpaRepository<PerformanceEntity, Integer> {
-    PerformanceEntity findByKopisId(String prfId);
+    PerformanceEntity findByKopisId(String kopisId);
+    PerformanceEntity findByPrfid(long prfId);
+    @Query(value = "select prfnm from performance", nativeQuery = true)
+    List<String> findPrfnmList();
 }

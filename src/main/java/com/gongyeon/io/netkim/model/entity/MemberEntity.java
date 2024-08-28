@@ -22,9 +22,6 @@ public class MemberEntity implements UserDetails {
     @GeneratedValue(strategy= GenerationType.AUTO)
     private int memberIdx;
 
-    @Column(nullable = false, unique=true)
-    private String memberId;
-
     @Column(nullable=false)
     private String password;
 
@@ -38,6 +35,9 @@ public class MemberEntity implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Column(nullable = false, unique=true)
+    private String email;
+
     @Column
     private String profileImg;
 
@@ -47,13 +47,17 @@ public class MemberEntity implements UserDetails {
     @Column
     private String company;
 
+    @Column
+    private boolean isCertify;  // 메일 인증 여부 확인
+
     @Builder
-    public MemberEntity(String memberId, String password, String phone, String memberName, Role role) {
-        this.memberId = memberId;
+    public MemberEntity(String password, String email, String phone, String memberName, Role role, boolean isCertify) {
         this.password = password;
+        this.email = email;
         this.phone = phone;
         this.memberName = memberName;
         this.role = role;
+        this.isCertify = isCertify;
     }
 
     @Override
@@ -63,7 +67,7 @@ public class MemberEntity implements UserDetails {
 
     @Override
     public String getUsername() {
-        return this.memberId;
+        return this.email;
     }
 
     @Override

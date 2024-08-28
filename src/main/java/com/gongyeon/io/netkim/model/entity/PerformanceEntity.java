@@ -44,7 +44,7 @@ public class PerformanceEntity {
     private String prfnm;				//공연 이름
 
     @Column
-    private String prfstate;			//공연상태(공연완료, 공연중, 공연완료)
+    private String prfstate;			//공연상태(공연예정, 공연중, 공연완료)
 
     @Column
     private LocalDate prfdfrom;			//공연시작일
