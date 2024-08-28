@@ -38,5 +38,5 @@ public class ReporterEntity {
 
     // 구분
     @Column
-    private String kindOf;
+    private ReporterType reporterType;
 }

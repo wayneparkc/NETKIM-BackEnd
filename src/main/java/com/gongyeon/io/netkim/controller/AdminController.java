@@ -88,6 +88,7 @@ public class AdminController {
                 .email(reporter.getEmail())
                 .reporterName(reporter.getReporterName())
                 .press(reporter.getPress())
+                .reporterType(reporter.getRType())
                 .memberIdx(0)
                 .build();
 
@@ -102,6 +103,7 @@ public class AdminController {
         reporterEntity.setReporterName(reporter.getReporterName());
         reporterEntity.setPress(reporter.getPress());
         reporterEntity.setEmail(reporter.getEmail());
+        reporterEntity.setReporterType(reporter.getRType());
         reporterRepository.save(reporterEntity);
         return new ResponseEntity<>(reporterEntity.getReporterId(), HttpStatus.OK);
     }

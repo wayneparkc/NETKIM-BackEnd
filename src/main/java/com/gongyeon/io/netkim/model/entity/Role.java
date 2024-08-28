@@ -8,5 +8,5 @@ package com.gongyeon.io.netkim.model.entity;
 */
 
 public enum Role {
-    ADMIN, MANAGER, MEMBER,
+    ADMIN, MANAGER, MEMBER
 }

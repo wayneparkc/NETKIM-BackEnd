@@ -1,5 +1,6 @@
 package com.gongyeon.io.netkim.model.dto;
 
+import com.gongyeon.io.netkim.model.entity.ReporterType;
 import jakarta.persistence.Column;
 import lombok.Data;
 
@@ -16,4 +17,8 @@ public class Reporter {
     // 언론사
     @Column
     private String press;
+
+    // 타입
+    @Column
+    private ReporterType rType;
 }
