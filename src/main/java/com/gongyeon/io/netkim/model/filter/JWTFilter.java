@@ -57,10 +57,10 @@ public class JWTFilter extends OncePerRequestFilter {
         }
 
         //토큰에서 username과 role 획득
-        String memberIdx = jwtUtil.getMemberId(token);
+        long memberIdx = jwtUtil.getMemberIdx(token);
 
         //userEntity를 생성하여 값 set
-        MemberEntity memberEntity = memberRepository.findByMemberIdx(Integer.parseInt(memberIdx));
+        MemberEntity memberEntity = memberRepository.findByMemberIdx(memberIdx);
 
         //스프링 시큐리티 인증 토큰 생성
         Authentication authToken = new UsernamePasswordAuthenticationToken(memberEntity, null, memberEntity.getAuthorities());

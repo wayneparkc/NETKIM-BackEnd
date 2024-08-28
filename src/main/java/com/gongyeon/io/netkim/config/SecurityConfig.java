@@ -58,16 +58,24 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((auth) -> auth
-                        .anyRequest().permitAll())
+//                        .anyRequest().permitAll())
                 // Spring Security Filter 적용하기
-//                        .requestMatchers("/", "/env", "/api-member/**").permitAll()
-//                        .requestMatchers("/api-member/admin/**").hasRole("ADMIN")
-//                        .anyRequest().authenticated())
-//                .addFilterBefore(new JWTFilter(memberRepository, jwtUtil), LoginFilter.class)
-//                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, "/api-member/login"), UsernamePasswordAuthenticationFilter.class)
-//                .logout((logout)-> logout.logoutUrl("/api-member/logout"));
+                        .requestMatchers("/", "/env", "/api-member**", "/login**").permitAll()
+                        .requestMatchers("/api-admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api-reporter/**").hasAnyRole("ADMIN", "MANAGER")
+                        .anyRequest().authenticated())
+                .addFilterBefore(new JWTFilter(memberRepository, jwtUtil), LoginFilter.class)
+                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, "/api-member/login"), UsernamePasswordAuthenticationFilter.class)
+                .logout((logout)-> logout.logoutUrl("/api-member/logout"))
                 .sessionManagement((session) -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+        // OAuth 2.0 로그인 방식 설정
+//        http
+//                .oauth2Login((auth) -> auth.loginPage("/oauth-login/login")
+//                        .defaultSuccessUrl("/oauth-login")
+//                        .failureUrl("/oauth-login/login")
+//                        .permitAll());
         return http.build();
     }
 }

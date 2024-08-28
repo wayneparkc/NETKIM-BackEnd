@@ -13,16 +13,21 @@ import lombok.*;
 public class PressReleaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long pRId;                      // 식별 index
+    private long pressReleaseId;                      // 식별 index
 
     @OneToOne
     @JoinColumn(name="prfId")
     private PerformanceEntity performance;  // KOPIS 관리 ID
 
-    @OneToOne
-    @JoinColumn(name="memberIdx")
-    private MemberEntity member;    		// 작성자 이름
+    @Column
+    private long memberIdx;    		// 작성자 인덱스
+
+    @Column
+    private String headLine;                // 보도자료 제목
 
     @Column(columnDefinition = "TEXT")
     private String content;                 // 보도자료 내용
+
+    @Column
+    private String filename;
 }

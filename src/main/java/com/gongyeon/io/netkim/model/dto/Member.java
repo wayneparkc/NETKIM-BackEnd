@@ -7,15 +7,16 @@ import lombok.Data;
 public class Member {
     private String username;
     private String phone;
-    private String userId;
     private String password;
+    private String email;
 
     public MemberEntity toEntity() {
         return MemberEntity.builder()
+                .password(password)
                 .memberName(username)
                 .phone(phone)
-                .memberId(userId)
-                .password(password)
+                .email(email)
+                .isCertify(false)
                 .build();
     }
 }

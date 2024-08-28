@@ -30,7 +30,10 @@ ext {
 dependencies {
     // 완성된 보도자료 발송을 위한 의존성 추가
     implementation 'org.springframework.boot:spring-boot-starter-mail'
-    
+
+    // 메일 인증을 위한 redis 의존성 추가
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
     // 파일 관리를 위한 의존성 추가
     implementation 'kr.dogfoot:hwplib:1.1.6'
 
@@ -51,8 +54,11 @@ dependencies {
     // Java 내에서 다른 Http Request 발송을 위한 의존성 추가
     // implementation 'org.springframework.boot:spring-boot-starter-webflux:3.3.2'
 
-    // Basic Setting
+    // MemberLogin
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+    // Basic Setting
     implementation 'org.springframework.boot:spring-boot-starter-web'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

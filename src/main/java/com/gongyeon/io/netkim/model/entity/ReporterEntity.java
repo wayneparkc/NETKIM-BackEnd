@@ -31,4 +31,12 @@ public class ReporterEntity {
     // 언론사
     @Column
     private String press;
+
+    // 등록한 사람의 index
+    @Column
+    private long memberIdx;
+
+    // 구분
+    @Column
+    private String kindOf;
 }
