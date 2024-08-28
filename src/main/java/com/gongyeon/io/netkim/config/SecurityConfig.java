@@ -60,9 +60,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests((auth) -> auth
 //                        .anyRequest().permitAll())
                 // Spring Security Filter 적용하기
-                        .requestMatchers("/", "/env", "/api-member**", "/login**").permitAll()
+                        .requestMatchers("/", "/env", "/api-member/**", "/login**").permitAll()
                         .requestMatchers("/api-admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api-reporter/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers("/api-reporter/**", "api-news/**").hasAnyRole("ADMIN", "MANAGER")
                         .anyRequest().authenticated())
                 .addFilterBefore(new JWTFilter(memberRepository, jwtUtil), LoginFilter.class)
                 .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, "/api-member/login"), UsernamePasswordAuthenticationFilter.class)
