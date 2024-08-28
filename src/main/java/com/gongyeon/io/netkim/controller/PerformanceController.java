@@ -15,9 +15,18 @@ public class PerformanceController {
     public PerformanceController(PerformanceService performanceService) {
         this.performanceService = performanceService;
     }
-    
-    // 저장된 공연 전체 조회 메서드
+
     @GetMapping("")
+    public ResponseEntity<List<String>> getAllprfnm() {
+        List<String> performanceList = performanceService.getAllprfnm();
+        if(performanceList.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(performanceList, HttpStatus.OK);
+    }
+
+    // 저장된 공연 전체 조회 메서드
+    @GetMapping("/all-prf")
     public ResponseEntity<List<PerformanceEntity>> getAllPerformance() {
         List<PerformanceEntity> performanceList = performanceService.getAllPerformance();
         if(performanceList.isEmpty()) {

@@ -25,6 +25,7 @@ import kr.dogfoot.hwplib.object.bodytext.paragraph.text.ParaText;
 import kr.dogfoot.hwplib.reader.HWPReader;
 import kr.dogfoot.hwplib.tool.objectfinder.ControlFilter;
 import kr.dogfoot.hwplib.tool.objectfinder.ControlFinder;
+import kr.dogfoot.hwplib.writer.HWPWriter;
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -34,6 +35,8 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -85,19 +88,56 @@ public class PressReleaseServiceImpl implements PressReleaseService {
                 .build();
     }
 
-
+    // 보도자료 파일을 제작하고, 저장하는 메서드
     @Override
-    public PressReleaseEntity makeRelease(HttpHeaders headers, PressRelease pressRelease) {
+    public PressReleaseEntity makeRelease(HttpHeaders headers, PressRelease pressRelease) throws Exception {
         long memberIdx = jwtUtil.getMemberIdx(headers.getFirst("Authorization").split(" ")[1]);
         long prfId = pressRelease.getPerformanceId();
+        String filepath = "C://Users/SSAFY/Desktop/";
+//        String filepath = "data/hwp/";
         PerformanceEntity performance = performanceRepository.findByPrfid(prfId);
+        String filename = performance.getKopisId() + "_pr.hwp";
+
+        // 내용 불러오기
+        HWPFile file = HWPReader.fromFile(filepath+"NewForm.hwp");
+        ArrayList<Control> result = ControlFinder.find(file, new ControlFilter(){
+            // 한 파일 내에서 Table의 속성을 가진 모든 객체를 찾기 위하여, 테이블 속성을 가졌는지 확인하는 메서드
+            @Override
+            public boolean isMatched(Control control, Paragraph paragraph, Section section) {
+                return control.getType() == ControlType.Table;
+            }
+        });
+
+        if(result != null && !result.isEmpty()) {
+            // 보도자료 작성 양식의 본문 찾기
+            Control control = result.get(0);
+            ControlTable table = (ControlTable) control;
+
+            Row releaseDateRow = table.getRowList().get(1);
+            releaseDateRow.getCellList().get(2).getParagraphList().getParagraph(0).getText().addString("즉시 사용 가능합니다.");
+            releaseDateRow.getCellList().get(4).getParagraphList().getParagraph(0).getText().addString(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd. hh:mm")));
+
+            Cell bodyCell = table.getRowList().get(2).getCellList().get(0);
+            bodyCell.getParagraphList().addNewParagraph();
+            bodyCell.getParagraphList().getParagraph(1).getText().addString(makeBody(performance, pressRelease));
+
+            // 수정이 완료되면 바뀐 내용을 확인해요!
+            for(Row row : table.getRowList()) {
+                for(Cell cell : row.getCellList()) {
+                    System.out.print(cell.getParagraphList().getNormalString() + " | ");
+                }
+                System.out.println();
+            }
+
+            HWPWriter.toFile(file, filepath + filename);
+        }
 
         PressReleaseEntity pressReleaseEntity = PressReleaseEntity.builder()
                 .performance(performance)
                 .memberIdx(memberIdx)
                 .headLine(makeHeadLine(performance, pressRelease))
                 .content(makeBody(performance, pressRelease))
-                .filename("")
+                .filename(filename)
                 .build();
         pressReleaseRepository.save(pressReleaseEntity);
         return pressReleaseEntity;
@@ -106,7 +146,6 @@ public class PressReleaseServiceImpl implements PressReleaseService {
     @Override
     public String getReleaseFile() throws Exception {
         HWPFile file = HWPReader.fromFile("data/hwp/NewForm.hwp");
-//        HWPFile file2 = file.c;
         ArrayList<Control> result = ControlFinder.find(file, new ControlFilter(){
             // 한 파일 내에서 Table의 속성을 가진 모든 객체를 찾기 위하여, 테이블 속성을 가졌는지 확인하는 메서드
             @Override
@@ -118,7 +157,7 @@ public class PressReleaseServiceImpl implements PressReleaseService {
         if(result != null && !result.isEmpty()) {
             Control control = result.get(0);
             ControlTable table = (ControlTable) control;
-
+            
             for(Row row : table.getRowList()) {
                 for(Cell cell : row.getCellList()) {
                     System.out.print(cell.getParagraphList().getNormalString() + " | ");
@@ -163,15 +202,15 @@ public class PressReleaseServiceImpl implements PressReleaseService {
     }
 
     private String makeBody(PerformanceEntity performance, PressRelease pressRelease) {
-        String title = performance.getPrfnm();
+        String title = performance.getPrfnm().replaceAll("\\[.*?\\]|\\(.*?\\)", "").trim();
         LocalDate stDate = performance.getPrfdfrom();
         LocalDate endDate = performance.getPrfdto();
         String synopsis = pressRelease.getSynopsis();
         String cast = pressRelease.getActors();
 
-        StringBuilder content = new StringBuilder("○ 뮤지컬 '"+ title +"'"+ getParticle(title, false)+" 오는 "+stDate.getMonthValue()+"월 "+stDate.getDayOfMonth()+"일 개막한다.");
+        StringBuilder content = new StringBuilder(" 뮤지컬 '"+ title +"'"+ getParticle(title, false)+" 오는 "+stDate.getMonthValue()+"월 "+stDate.getDayOfMonth()+"일 개막한다.");
         if(synopsis != null && !synopsis.isEmpty()) {
-            content.append("\n\n뮤지컬 '").append(title).append("'").append(getParticle(title, true)).append(" ").append(synopsis).append("는 이야기로 ").append(performance.getPrfruntime()).append("분간 관객에게 감동을 선사한다.");
+            content.append("\n\n○ 뮤지컬 '").append(title).append("'").append(getParticle(title, true)).append(" ").append(synopsis).append("는 이야기로 ").append(performance.getPrfruntime()).append("분간 관객에게 감동을 선사한다.");
         }
         if(cast != null && !cast.isEmpty()) {
             content.append("\n\n").append("○ 이번 뮤지컬 '").append(title).append("'에서는 ").append(cast).append("등이 출연한다.");
@@ -181,11 +220,12 @@ public class PressReleaseServiceImpl implements PressReleaseService {
         if(pressRelease.getInterviewee() != null && !pressRelease.getInterviewee().isEmpty()) {
             content.append("\n\n").append("○ 이번 뮤지컬에 참여한 '").append(pressRelease.getInterviewee()).append(getParticle(pressRelease.getInterviewee(), true)).append("'").append(pressRelease.getInterviewContent()).append("'라며 소감을 남겼다.");
         }
-        content.append("\n\n").append("○ 한편, 이번 뮤지컬 '").append(title).append(getParticle(title, true)).append(" 오는 ").append(stDate.getMonthValue()).append("월 ").append(stDate.getDayOfMonth()).append("일 부터").append(endDate.getMonthValue()).append("월 ").append(endDate.getDayOfMonth()).append("일 까지 ").append(performance.getFcltynm()).append("에서 공연한다. //끝//");;
+        content.append("\n\n").append("○ 한편, 이번 뮤지컬 '").append(title).append("'").append(getParticle(title, true)).append(" 오는 ").append(stDate.getMonthValue()).append("월 ").append(stDate.getDayOfMonth()).append("일 부터").append(endDate.getMonthValue()).append("월 ").append(endDate.getDayOfMonth()).append("일 까지 ").append(performance.getFcltynm()).append("에서 공연한다. //끝//");;
 
         return content.toString();
     }
-
+    
+    // 조사를 결정하여 반환하는 메서드
     private static String getParticle(String word, boolean isSubject) {
         if (word == null || word.isEmpty()) {
             return "";
@@ -209,25 +249,17 @@ public class PressReleaseServiceImpl implements PressReleaseService {
 
         return ""; // 한글이 아닌 경우 빈 문자열 반환
     }
-
+    
+    // UTF-8 에 따라, 한글인지 판별하는 메서드
     private static boolean isHangul(char c) {
         return c >= 0xAC00 && c <= 0xD7A3;
     }
-
+    
+    // 종성을 가지고 있는지 확인하는 메서드
     private static boolean hasFinalConsonant(char c) {
         int base = 0xAC00;
         int finalConsonantCount = 28;
         int index = c - base;
         return (index % finalConsonantCount) != 0;
-    }
-
-    private void setParaText(Paragraph p, String text2) {
-        p.createText();
-        ParaText pt = p.getText();
-        try {
-            pt.addString(text2);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
     }
 }

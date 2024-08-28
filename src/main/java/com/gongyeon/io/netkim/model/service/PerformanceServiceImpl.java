@@ -32,6 +32,11 @@ public class PerformanceServiceImpl implements PerformanceService {
     }
 
     @Override
+    public List<String> getAllprfnm() {
+        return performanceRepository.findPrfnmList();
+    }
+
+    @Override
     public PerformanceEntity getDetail(String kopisId) {
         PerformanceEntity performance = performanceRepository.findByKopisId(kopisId);
         // 기존에 상세조회가 되어 있는 경우에는 Query를 던질 필요가 없지만, 그렇지 않다면 Query를 다시 던진다.
