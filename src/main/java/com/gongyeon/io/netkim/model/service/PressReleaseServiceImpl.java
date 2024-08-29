@@ -113,7 +113,7 @@ public class PressReleaseServiceImpl implements PressReleaseService {
 
             Cell bodyCell = table.getRowList().get(2).getCellList().get(0);
             bodyCell.getParagraphList().addNewParagraph();
-            bodyCell.getParagraphList().getParagraph(1).getText().addString(makeBody(performance, pressRelease));
+            bodyCell.getParagraphList().getParagraph(0).getText().addString(makeBody(performance, pressRelease));
 
             // 수정이 완료되면 바뀐 내용을 확인해요!
             for(Row row : table.getRowList()) {
