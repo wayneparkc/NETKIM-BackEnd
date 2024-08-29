@@ -53,7 +53,7 @@ public class MemberController {
 
     @Operation(summary="권한 상승 요청", description="사용자들의 권한을 관리")
     @PostMapping("/role-manager")
-    public ResponseEntity<Void> roleManager(@RequestHeader HttpHeaders headers, @RequestPart("certificate") MultipartFile certificate) throws IOException {
+    public ResponseEntity<Void> roleManager(@RequestHeader HttpHeaders headers, @RequestPart("certificate") MultipartFile certificate) {
         try {
             memberService.upgradePlease(headers, certificate);
         } catch (FileNotFoundException e) {
