@@ -30,6 +30,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.time.LocalDate;
@@ -89,6 +90,7 @@ public class PressReleaseServiceImpl implements PressReleaseService {
     }
 
     // 보도자료 파일을 제작하고, 저장하는 메서드
+    @Transactional
     @Override
     public PressReleaseEntity makeRelease(HttpHeaders headers, PressRelease pressRelease) throws Exception {
         long memberIdx = jwtUtil.getMemberIdx(headers.getFirst("Authorization").split(" ")[1]);
@@ -229,7 +231,7 @@ public class PressReleaseServiceImpl implements PressReleaseService {
         if(pressRelease.getSeats() > 1000){
             content.append(pressRelease.getSeats()).append(" 이상의 관객이 찾아와 관람하였으며,");
         }
-        content.append(" 오는 ").append(stDate.getMonthValue()).append("월 ").append(stDate.getDayOfMonth()).append("일 부터").append(endDate.getMonthValue()).append("월 ").append(endDate.getDayOfMonth()).append("일 까지 ").append(performance.getFcltynm()).append("에서 공연된다. //끝//");;
+        content.append(" 오는 ").append(stDate.getMonthValue()).append("월 ").append(stDate.getDayOfMonth()).append("일 부터 ").append(endDate.getMonthValue()).append("월 ").append(endDate.getDayOfMonth()).append("일 까지 ").append(performance.getFcltynm()).append("에서 공연된다. //끝//");;
 
         return content.toString();
     }

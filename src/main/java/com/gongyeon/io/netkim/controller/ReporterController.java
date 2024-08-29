@@ -4,7 +4,9 @@ import com.gongyeon.io.netkim.model.dto.Reporter;
 import com.gongyeon.io.netkim.model.entity.ReporterEntity;
 import com.gongyeon.io.netkim.model.jwt.JwtUtil;
 import com.gongyeon.io.netkim.model.repository.ReporterRepository;
+import com.gongyeon.io.netkim.model.service.ReporterService;
 import io.swagger.v3.oas.annotations.Operation;
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,13 +19,15 @@ import java.util.List;
 public class ReporterController {
     private final JwtUtil jwtUtil;
     private final ReporterRepository reporterRepository;
+    private final ReporterService reporterService;
 
-    public ReporterController(JwtUtil jwtUtil, ReporterRepository reporterRepository) {
+    public ReporterController(JwtUtil jwtUtil, ReporterRepository reporterRepository, ReporterService reporterService) {
         this.jwtUtil = jwtUtil;
         this.reporterRepository = reporterRepository;
+        this.reporterService = reporterService;
     }
 
-    @Operation(description = "기자 명단 조회를 위한 메서드")
+    @Operation(summary = "기자 명단 조회", description = "사용자에게 등록된 기자 명단 조회를 위한 메서드")
     @GetMapping("")
     public ResponseEntity<List<ReporterEntity>> getAllReporters(@RequestHeader(value = HttpHeaders.AUTHORIZATION) String token) {
         long memberIdx = jwtUtil.getMemberIdx(token.split(" ")[1]);
@@ -34,47 +38,42 @@ public class ReporterController {
         return new ResponseEntity<>(reporterList, HttpStatus.OK);
     }
 
-    @Operation(description = "Default 기자 명단 추가를 위한 메서드")
+    @Operation(summary="reporterId로 상세조회", description="기자 정보 상세 확인을 위한 메서드 -> 등록자와 무관하게 조회 가능")
+    @GetMapping("/{reporterId}")
+    public ResponseEntity<ReporterEntity> getReporter(@PathVariable("reporterId") long reporterId){
+        ReporterEntity reporter = reporterRepository.findByReporterId(reporterId);
+        if(reporter ==null || reporter.getEmail()==null){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(reporter, HttpStatus.OK);
+    }
+
+    @Operation(summary = "사용자 기자 추가", description="사용자가 본인의 기자를 등록")
     @PostMapping("")
-    public ResponseEntity<Void> setDefaultReporter(@RequestHeader HttpHeaders headers, @RequestBody Reporter reporter){
-        long memberIdx = jwtUtil.getMemberIdx(headers.getFirst("Authorization").split(" ")[1]);
-        // 중복검사
-        if(reporterRepository.findByEmailAndMemberIdx(reporter.getEmail(), memberIdx)!=null){
+    public ResponseEntity<Void> addReporter(@RequestHeader HttpHeaders headers, @RequestBody Reporter reporter) {
+        try {
+            reporterService.addReporter(headers, reporter);
+        } catch (BadRequestException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-
-        ReporterEntity reporterEntity = ReporterEntity.builder()
-                .email(reporter.getEmail())
-                .reporterName(reporter.getReporterName())
-                .press(reporter.getPress())
-                .reporterType(reporter.getRType())
-                .memberIdx(memberIdx)
-                .build();
-        reporterRepository.save(reporterEntity);
         return ResponseEntity.ok().build();
     }
 
-    @Operation(description = "MemberIdx에 맞는 기자 정보 수정을 위한 메서드")
+    @Operation(summary="기자 정보 수정", description = "MemberIdx에 맞는 기자 정보 수정을 위한 메서드")
     @PutMapping("/{reporterId}")
-    public ResponseEntity<Long> updateDefaultReporter(@RequestHeader HttpHeaders headers, @PathVariable("reporterId") long reporterId, @RequestBody Reporter reporter){
-        long memberIdx = jwtUtil.getMemberIdx(headers.getFirst("Authorization").split(" ")[1]);
-        ReporterEntity reporterEntity = reporterRepository.findByReporterId(reporterId);
-        if(reporterEntity==null || reporterEntity.getMemberIdx()!=memberIdx){
+    public ResponseEntity<Long> updateReporter(@RequestHeader HttpHeaders headers, @PathVariable("reporterId") long reporterId, @RequestBody Reporter reporter){
+        try {
+            long result = reporterService.updateReporter(headers, reporterId, reporter);
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }catch (Exception e){
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        reporterEntity.setReporterName(reporter.getReporterName());
-        reporterEntity.setPress(reporter.getPress());
-        reporterEntity.setEmail(reporter.getEmail());
-        reporterEntity.setReporterType(reporter.getRType());
-        reporterRepository.save(reporterEntity);
-        return new ResponseEntity<>(reporterEntity.getReporterId(), HttpStatus.OK);
     }
 
-    @Operation(description = "Default 기자 명단 삭제를 위한 메서드")
+    @Operation(summary="기자 정보 삭제", description = "등록된 기자 명단 삭제를 위한 메서드")
     @DeleteMapping("/{reporterId}")
-    public ResponseEntity<Void> deleteDefaultReporter(@RequestHeader HttpHeaders headers, @PathVariable("reporterId") long reporterId) {
-        long memberIdx = jwtUtil.getMemberIdx(headers.getFirst("Authorization").split(" ")[1]);
-        reporterRepository.deleteByReporterIdAndMemberIdx(reporterId, memberIdx);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Void> deleteReporter(@RequestHeader HttpHeaders headers, @PathVariable("reporterId") long reporterId) {
+        reporterService.removeReporter(headers, reporterId);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

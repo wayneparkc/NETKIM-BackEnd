@@ -8,6 +8,7 @@ import com.gongyeon.io.netkim.model.entity.Role;
 import com.gongyeon.io.netkim.model.repository.MemberRepository;
 import com.gongyeon.io.netkim.model.repository.ReporterRepository;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.File;
 import java.util.List;
 
+@Tag(name = "관리자 페이지", description = "관리자로서 권한과 default 기자 명단을 관리하는 URL")
 @RestController
 @RequestMapping("/api-admin")
 public class AdminController {
@@ -29,17 +31,17 @@ public class AdminController {
         this.reporterRepository = reporterRepository;
     }
 
-    @Operation(description="권한 부여 신청자를 확인하기 위한 메서드")
+    @Operation(summary = "권한 부여 신청자 조회", description="권한 부여 신청자를 확인하기 위한 메서드")
     @GetMapping("")
     public ResponseEntity<List<MemberEntity>> getAuthorizationList(){
         List<MemberEntity> memberList = memberRepository.getLevelUpMembers();
         if(memberList==null || memberList.isEmpty()){
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         return new ResponseEntity<>(memberList, HttpStatus.OK);
     }
 
-    @Operation(description="권한 부여를 위한 메서드")
+    @Operation(summary = "권한 부여", description="권한 부여를 위한 메서드")
     @PostMapping("")
     public ResponseEntity<Void> setAuthorization(@RequestBody Upgrader member){
         // 회사명을 던져줘
@@ -56,7 +58,7 @@ public class AdminController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(description="Default 기자 명단 조회를 위한 메서드")
+    @Operation(summary="Default 기자 명단 조회", description="Default 기자 명단 조회를 위한 메서드")
     @GetMapping("/default-pr")
     public ResponseEntity<List<ReporterEntity>> getDefaultReporter(){
         List<ReporterEntity> reporterList = reporterRepository.findAllByMemberIdx(0);
@@ -64,16 +66,6 @@ public class AdminController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         return new ResponseEntity<>(reporterList, HttpStatus.OK);
-    }
-
-    @Operation(description="Default 기자 정보 상세 확인을 위한 메서드")
-    @GetMapping("/default-pr/{reporterId}")
-    public ResponseEntity<ReporterEntity> getDefaultReporter(@PathVariable("reporterId") long reporterId){
-        ReporterEntity reporter = reporterRepository.findByReporterId(reporterId);
-        if(reporter ==null || reporter.getEmail()==null){
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        return new ResponseEntity<>(reporter, HttpStatus.OK);
     }
 
     @Operation(description = "Default 기자 명단 추가를 위한 메서드")

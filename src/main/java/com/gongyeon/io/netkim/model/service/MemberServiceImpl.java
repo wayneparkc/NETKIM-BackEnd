@@ -2,14 +2,19 @@ package com.gongyeon.io.netkim.model.service;
 
 import com.gongyeon.io.netkim.model.dto.Member;
 import com.gongyeon.io.netkim.model.entity.MemberEntity;
+import com.gongyeon.io.netkim.model.entity.ReporterEntity;
 import com.gongyeon.io.netkim.model.entity.Role;
 import com.gongyeon.io.netkim.model.jwt.JwtUtil;
 import com.gongyeon.io.netkim.model.repository.MemberRepository;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpHeaders;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -24,6 +29,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Duration;
+import java.util.List;
 import java.util.Random;
 
 @Service
@@ -33,6 +39,7 @@ public class MemberServiceImpl implements MemberService, UserDetailsService {
     private final MailService mailService;
     private final JwtUtil jwtUtil;
     private final StringRedisTemplate redisTemplate;
+    private final JavaMailSender mailSender;
 
     @Override
     public String signup(Member member) {
@@ -94,37 +101,35 @@ public class MemberServiceImpl implements MemberService, UserDetailsService {
     }
 
     @Override
-    public boolean certify(HttpHeaders headers) {
+    public boolean certify(HttpHeaders headers) throws MessagingException, BadRequestException {
         long memberIdx = jwtUtil.getMemberIdx(headers.getFirst("Authorization").split(" ")[1]);
         MemberEntity member = memberRepository.findByMemberIdx(memberIdx);
-        if(member == null || member.isCertify()) {
-            return false;
-        }
 
+        if(member == null || member.isCertify()) {
+            throw new BadRequestException("이미 인증이 완료된 회원입니다.");
+        }
 
         String title = "공연이요 이메일 인증 안내";
         String authCode = this.createCode();
         String content = String.format(
-        """
-           <!DOCTYPE html>
-               <html lang="en">
-                   <head>
-                       <meta charset="UTF-8">
-                       <style>
-                        a{
-                            display: block;
-                            align: center;
-                            background-color: #f97272;
-                        }
-                       </style>
-                   </head>
-                   <body>
-                     <a href='%sapi-member/verify?vnumber=%s&email=%s'> 메일 인증하기 </a>
-                   </body>
-               </html>
-        """, "https://gongyeon.kro.kr/", authCode, member.getEmail());
+           """
+             <h1>공연이요 회원 이메일 인증</h1>
+             <p>이메일 인증 거부하실 수 있으나, 보도자료 발송 등 이메일을 활용한 다양한 서비스의 접근이 제한될 수 있습니다.</p>
+             <p>인증을 희망하시는 경우 아래의 버튼을 클릭해주십시오.</p>
+             <div style="border-radius:4px;background-color:#2196f3;display:block;color:#fff;line-height:26px;padding:8px 22px;margin-top:20px;text-align:center">
+                <a href='%sapi-member/verify?vnumber=%s&email=%s'>
+                    <b>메일 인증하기</b>
+                </a>
+             </div>
+            """, "https://gongyeon.kro.kr/", authCode, member.getEmail());
 
-        mailService.sendEmail(member.getEmail(), title, content);
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
+        helper.setFrom("admin@gongyeon.kro.kr");
+        helper.setTo(member.getEmail());
+        helper.setSubject(title);
+        helper.setText(content, true);
+        mailSender.send(mimeMessage);
         saveCertificationNumber(member.getEmail(), authCode);
         return true;
     }

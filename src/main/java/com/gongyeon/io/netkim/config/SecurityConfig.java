@@ -58,14 +58,13 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((auth) -> auth
-                        .anyRequest().authenticated())
 //                // swagger 설정
-//                        .requestMatchers("/swagger", "/swagger-ui.html", "/swagger-ui/**", "/api-docs", "/api-docs/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger", "/swagger-ui.html", "/swagger-ui/**", "/api-docs", "/api-docs/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/", "/env", "/api-member/**", "/login**", "api-file/**").permitAll()
 //                // Spring Security Filter 적용하기
-//                        .requestMatchers("/", "/env", "/api-member/**", "/login**", "api-file/**").permitAll()
-//                        .requestMatchers("/api-admin/**").hasRole(Role.ADMIN.name())
-//                        .requestMatchers("/api-reporter/**", "/api-news/**").hasAnyRole(Role.ADMIN.name(), Role.MANAGER.name())
-//                        .anyRequest().authenticated())
+                        .requestMatchers("/api-admin/**").hasAuthority("ADMIN")
+                        .requestMatchers("/api-reporter/**", "/api-news/**").hasAnyAuthority(Role.ADMIN.name(), Role.MANAGER.name())
+                        .anyRequest().authenticated())
                 .addFilterBefore(new JWTFilter(memberRepository, jwtUtil), LoginFilter.class)
                 .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, "/api-member/login"), UsernamePasswordAuthenticationFilter.class)
                 .logout((logout)-> logout.logoutUrl("/api-member/logout"))
