@@ -162,10 +162,8 @@ public class PerformanceServiceImpl implements PerformanceService {
 
     //tag값 가져오기
     private static String getTagValue(String tag, Element eElement) {
-        String result = "";    	//결과를 저장할 result 변수 선언
         NodeList nlList = eElement.getElementsByTagName(tag).item(0).getChildNodes();
-        result = nlList.item(0).getTextContent();
-        return result;
+        return nlList.item(0).getTextContent();
     }
 
     private int getMinute(String timeString) {

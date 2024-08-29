@@ -165,7 +165,7 @@ public class MemberServiceImpl implements MemberService, UserDetailsService {
             }
             return builder.toString();
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+            System.out.println("이메일 인증 코드 생성 중 오류 발생"+e);
             return "971030";
         }
     }
