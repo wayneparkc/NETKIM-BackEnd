@@ -13,4 +13,5 @@ public interface PerformanceRepository extends JpaRepository<PerformanceEntity, 
     PerformanceEntity findByPrfid(long prfId);
     @Query(value = "select prfnm from performance", nativeQuery = true)
     List<String> findPrfnmList();
+    PerformanceEntity findByPrfnm(String prfnm);
 }

@@ -58,9 +58,10 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((auth) -> auth
-//                        .anyRequest().permitAll())
+                // swagger 설정
+                        .requestMatchers("/swagger", "/swagger-ui.html", "/swagger-ui/**", "/api-docs", "/api-docs/**", "/v3/api-docs/**").permitAll()
                 // Spring Security Filter 적용하기
-                        .requestMatchers("/", "/env", "/api-member/**", "/login**").permitAll()
+                        .requestMatchers("/", "/env", "/api-member/**", "/login**", "api-file/**").permitAll()
                         .requestMatchers("/api-admin/**").hasRole("ADMIN")
                         .requestMatchers("/api-reporter/**", "api-news/**").hasAnyRole("ADMIN", "MANAGER")
                         .anyRequest().authenticated())

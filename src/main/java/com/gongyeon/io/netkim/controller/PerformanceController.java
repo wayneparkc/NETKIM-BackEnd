@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api-prf")
@@ -38,8 +39,23 @@ public class PerformanceController {
     // 공연 정보 상세 조회 메서드
     @GetMapping("/{prfId}")
     public ResponseEntity<PerformanceEntity> getPerformanceById(@PathVariable("prfId") String prfId) {
-        PerformanceEntity performance = performanceService.getDetail(prfId);
-        return new ResponseEntity<>(performance, HttpStatus.OK);
+        try{
+            PerformanceEntity performance = performanceService.getDetail(prfId);
+            return new ResponseEntity<>(performance, HttpStatus.OK);
+        }catch(NullPointerException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // 공연 이름으로 정보 찾는 조회 메서드
+    @PostMapping("/find")
+    public ResponseEntity<PerformanceEntity> getPerformanceByName(@RequestBody Map<String, String> map) {
+        try{
+            PerformanceEntity performance = performanceService.getDetailName(map.get("prfnm"));
+            return new ResponseEntity<>(performance, HttpStatus.OK);
+        }catch(NullPointerException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
     
     // KOPIS로 부터 공연 정보 추가 메서드 (초기세팅용)

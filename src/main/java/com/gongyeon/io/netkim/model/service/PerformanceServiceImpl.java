@@ -37,14 +37,29 @@ public class PerformanceServiceImpl implements PerformanceService {
     }
 
     @Override
-    public PerformanceEntity getDetail(String kopisId) {
+    public PerformanceEntity getDetail(String kopisId) throws NullPointerException {
         PerformanceEntity performance = performanceRepository.findByKopisId(kopisId);
         // 기존에 상세조회가 되어 있는 경우에는 Query를 던질 필요가 없지만, 그렇지 않다면 Query를 다시 던진다.
         // 던지는 방법에는 여러가지가 있지만, 어떤 방식으로 던질지에 대해서는 고민이 필요하다.
-        if(performance.getPrfcast()==null) {
-
+        if(performance == null || performance.getPrfnm() == null) {
+            throw new NullPointerException();
         }
-        return null;
+        if(performance.getEntrpsnm()==null) {
+            updatePerformance(kopisId);
+        }
+        return performance;
+    }
+
+    @Override
+    public PerformanceEntity getDetailName(String prfnm) throws NullPointerException {
+        PerformanceEntity performance = performanceRepository.findByPrfnm(prfnm);
+        if(performance == null || performance.getPrfnm() == null) {
+            throw new NullPointerException();
+        }
+        if(performance.getEntrpsnm()==null) {
+            updatePerformance(performance.getKopisId());
+        }
+        return performance;
     }
 
     @Override
@@ -138,7 +153,6 @@ public class PerformanceServiceImpl implements PerformanceService {
                 return performance;
             }
         }catch(Exception E) {
-            E.printStackTrace();
             System.out.println("업데이트 중 오류 발생" + E.getMessage());
         }
         return null;
