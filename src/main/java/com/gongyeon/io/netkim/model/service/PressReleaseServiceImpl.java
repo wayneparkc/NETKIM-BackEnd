@@ -102,13 +102,8 @@ public class PressReleaseServiceImpl implements PressReleaseService {
 
         // 내용 불러오기
         HWPFile file = HWPReader.fromFile(filepath+"NewForm.hwp");
-        ArrayList<Control> result = ControlFinder.find(file, new ControlFilter(){
-            // 한 파일 내에서 Table의 속성을 가진 모든 객체를 찾기 위하여, 테이블 속성을 가졌는지 확인하는 메서드
-            @Override
-            public boolean isMatched(Control control, Paragraph paragraph, Section section) {
-                return control.getType() == ControlType.Table;
-            }
-        });
+        // 한 파일 내에서 Table의 속성을 가진 모든 객체를 찾기 위하여, 테이블 속성을 가졌는지 확인하는 메서드
+        ArrayList<Control> result = ControlFinder.find(file, (control, paragraph, section) -> control.getType() == ControlType.Table);
 
         if(result != null && !result.isEmpty()) {
             // 보도자료 작성 양식의 본문 찾기
@@ -148,13 +143,8 @@ public class PressReleaseServiceImpl implements PressReleaseService {
     @Override
     public String getReleaseFile() throws Exception {
         HWPFile file = HWPReader.fromFile("data/hwp/NewForm.hwp");
-        ArrayList<Control> result = ControlFinder.find(file, new ControlFilter(){
-            // 한 파일 내에서 Table의 속성을 가진 모든 객체를 찾기 위하여, 테이블 속성을 가졌는지 확인하는 메서드
-            @Override
-            public boolean isMatched(Control control, Paragraph paragraph, Section section) {
-                return control.getType() == ControlType.Table;
-            }
-        });
+        // 한 파일 내에서 Table의 속성을 가진 모든 객체를 찾기 위하여, 테이블 속성을 가졌는지 확인하는 메서드
+        ArrayList<Control> result = ControlFinder.find(file, (control, paragraph, section) -> control.getType() == ControlType.Table);
 
         if(result != null && !result.isEmpty()) {
             Control control = result.get(0);
@@ -231,7 +221,7 @@ public class PressReleaseServiceImpl implements PressReleaseService {
         if(pressRelease.getSeats() > 1000){
             content.append(pressRelease.getSeats()).append(" 이상의 관객이 찾아와 관람하였으며,");
         }
-        content.append(" 오는 ").append(stDate.getMonthValue()).append("월 ").append(stDate.getDayOfMonth()).append("일 부터 ").append(endDate.getMonthValue()).append("월 ").append(endDate.getDayOfMonth()).append("일 까지 ").append(performance.getFcltynm()).append("에서 공연된다. //끝//");;
+        content.append(" 오는 ").append(stDate.getMonthValue()).append("월 ").append(stDate.getDayOfMonth()).append("일 부터 ").append(endDate.getMonthValue()).append("월 ").append(endDate.getDayOfMonth()).append("일 까지 ").append(performance.getFcltynm()).append("에서 공연된다. //끝//");
 
         return content.toString();
     }

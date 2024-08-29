@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 
 public interface MemberService extends UserDetailsService {
-    String signup(Member member);
+    void signup(Member member);
     boolean existsByMemberId(String memberId);
     UserDetails loadUserByUsername(String username) throws UsernameNotFoundException;
     void upgradePlease(HttpHeaders headers, MultipartFile certificate) throws IOException, NotFoundException;

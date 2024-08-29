@@ -2,7 +2,6 @@ package com.gongyeon.io.netkim.model.service;
 
 import com.gongyeon.io.netkim.model.dto.Member;
 import com.gongyeon.io.netkim.model.entity.MemberEntity;
-import com.gongyeon.io.netkim.model.entity.ReporterEntity;
 import com.gongyeon.io.netkim.model.entity.Role;
 import com.gongyeon.io.netkim.model.jwt.JwtUtil;
 import com.gongyeon.io.netkim.model.repository.MemberRepository;
@@ -29,20 +28,18 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Duration;
-import java.util.List;
 import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
 public class MemberServiceImpl implements MemberService, UserDetailsService {
     private final MemberRepository memberRepository;
-    private final MailService mailService;
     private final JwtUtil jwtUtil;
     private final StringRedisTemplate redisTemplate;
     private final JavaMailSender mailSender;
 
     @Override
-    public String signup(Member member) {
+    public void signup(Member member) {
         // DB Entity로 변신
         MemberEntity memberEntity = member.toEntity();
         // Role Default 값 지정
@@ -52,8 +49,6 @@ public class MemberServiceImpl implements MemberService, UserDetailsService {
         memberEntity.setPassword(encPassword);
         // 저장하기
         memberRepository.save(memberEntity);
-        // 회원가입 완료 이후 토큰 발급 이후 return
-        return jwtUtil.createToken(memberEntity.getMemberIdx(), memberEntity.getRole().name());
     }
 
     @Override
