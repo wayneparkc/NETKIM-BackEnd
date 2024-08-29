@@ -12,13 +12,15 @@ import org.w3c.dom.NodeList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
 public class PerformanceServiceImpl implements PerformanceService {
-    private PerformanceRepository performanceRepository;
+    private final PerformanceRepository performanceRepository;
+
     @Value("${spring.kopis.key}")
     String key;
 
@@ -72,14 +74,14 @@ public class PerformanceServiceImpl implements PerformanceService {
             while(page<=30) {
                 // XML 호출값 URL세팅
                 StringBuilder apiQuery = new StringBuilder("http://www.kopis.or.kr/openApi/restful/pblprfr");				// URL
-                apiQuery.append("?service=" + key); 			// Service Key
-                apiQuery.append("&" + URLEncoder.encode("stdate","UTF-8") + "=" + URLEncoder.encode("20160101", "UTF-8"));	// 검색 시작일
-                apiQuery.append("&" + URLEncoder.encode("eddate","UTF-8") + "=" + URLEncoder.encode("20251231", "UTF-8"));	// 검색 종료일
-                apiQuery.append("&" + URLEncoder.encode("cpage","UTF-8") + "=" + URLEncoder.encode(Integer.toString(page), "UTF-8")); 			// 페이지번호
-                apiQuery.append("&" + URLEncoder.encode("rows","UTF-8") + "=" + URLEncoder.encode("1000", "UTF-8"));			// 페이지당 목록 수
-                apiQuery.append("&" + URLEncoder.encode("shcate","UTF-8") + "=" + URLEncoder.encode("GGGA", "UTF-8"));		// 장르명(뮤지컬 고정)
-                apiQuery.append("&" + URLEncoder.encode("newsql","UTF-8") + "=" + URLEncoder.encode("Y", "UTF-8")); 		// 신규생성 메시지
-			    System.out.println(apiQuery.toString());																	// Query문 테스트
+                apiQuery.append("?service=").append(key); 			// Service Key
+                apiQuery.append("&").append(URLEncoder.encode("stdate", "UTF-8")).append("=").append(URLEncoder.encode("20160101", "UTF-8"));	// 검색 시작일
+                apiQuery.append("&").append(URLEncoder.encode("eddate", "UTF-8")).append("=").append(URLEncoder.encode("20251231", "UTF-8"));	// 검색 종료일
+                apiQuery.append("&").append(URLEncoder.encode("cpage", "UTF-8")).append("=").append(URLEncoder.encode(Integer.toString(page), "UTF-8")); 			// 페이지번호
+                apiQuery.append("&").append(URLEncoder.encode("rows", "UTF-8")).append("=").append(URLEncoder.encode("1000", "UTF-8"));			// 페이지당 목록 수
+                apiQuery.append("&").append(URLEncoder.encode("shcate", "UTF-8")).append("=").append(URLEncoder.encode("GGGA", "UTF-8"));		// 장르명(뮤지컬 고정)
+                apiQuery.append("&").append(URLEncoder.encode("newsql", "UTF-8")).append("=").append(URLEncoder.encode("Y", "UTF-8")); 		// 신규생성 메시지
+//                System.out.println(apiQuery);																	// Query문 테스트
 
                 DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
                 DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -119,7 +121,6 @@ public class PerformanceServiceImpl implements PerformanceService {
             System.out.println("추가된 공연 DB의 수: "+res);
         }catch(Exception E) {
             System.out.println("DB를 받아오던 중 오류 발생 : "+E);
-            E.printStackTrace();
         }
         return res;
     }
@@ -133,8 +134,8 @@ public class PerformanceServiceImpl implements PerformanceService {
             // Parcing 할 db 조회
             StringBuilder apiQuery = new StringBuilder("http://www.kopis.or.kr/openApi/restful/pblprfr/");				// URL
             apiQuery.append(kopisId);
-            apiQuery.append("?service=" + key); 			// Service Key
-            apiQuery.append("&" + URLEncoder.encode("newsql","UTF-8") + "=" + URLEncoder.encode("Y", "UTF-8")); 		// 신규생성 메시지
+            apiQuery.append("?service=").append(key); 			// Service Key
+            apiQuery.append("&").append(URLEncoder.encode("newsql", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode("Y", StandardCharsets.UTF_8)); 		// 신규생성 메시지
             System.out.println(apiQuery);
 
 

@@ -24,6 +24,7 @@ public class JwtUtil {
     public long getMemberIdx(String token){
         return Long.parseLong(Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("memberIdx", String.class));
     }
+
     public String getRole(String token) {
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("USER_ROLE", String.class);
     }

@@ -1,7 +1,6 @@
 package com.gongyeon.io.netkim.model.repository;
 
 import com.gongyeon.io.netkim.model.entity.MemberEntity;
-import org.hibernate.annotations.SQLSelect;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
