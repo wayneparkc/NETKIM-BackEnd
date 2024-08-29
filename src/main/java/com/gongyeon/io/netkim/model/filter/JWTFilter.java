@@ -1,6 +1,7 @@
 package com.gongyeon.io.netkim.model.filter;
 
 import com.gongyeon.io.netkim.model.entity.MemberEntity;
+import com.gongyeon.io.netkim.model.entity.Role;
 import com.gongyeon.io.netkim.model.jwt.JwtUtil;
 import com.gongyeon.io.netkim.model.repository.MemberRepository;
 import io.jsonwebtoken.Claims;
@@ -15,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 
 public class JWTFilter extends OncePerRequestFilter {
@@ -58,14 +60,14 @@ public class JWTFilter extends OncePerRequestFilter {
 
         //토큰에서 username과 role 획득
         long memberIdx = jwtUtil.getMemberIdx(token);
-        String role = jwtUtil.getRole(token);
-
-        //userEntity를 생성하여 값 set
+//        String role = jwtUtil.getRole(token);
+//
+//        //userEntity를 생성하여 값 set
         MemberEntity memberEntity = memberRepository.findByMemberIdx(memberIdx);
-        if (memberEntity==null || !role.equals(memberEntity.getRole().name())) {
-            return;
-        }
-
+//        if (memberEntity==null || !role.equals(memberEntity.getRole().name())) {
+//            return;
+//        }
+        System.out.println(memberEntity.getAuthorities());
         //스프링 시큐리티 인증 토큰 생성
         Authentication authToken = new UsernamePasswordAuthenticationToken(memberEntity, null, memberEntity.getAuthorities());
         //세션에 사용자 등록

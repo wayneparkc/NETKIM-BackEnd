@@ -1,5 +1,6 @@
 package com.gongyeon.io.netkim.config;
 
+import com.gongyeon.io.netkim.model.entity.Role;
 import com.gongyeon.io.netkim.model.filter.JWTFilter;
 import com.gongyeon.io.netkim.model.filter.LoginFilter;
 import com.gongyeon.io.netkim.model.jwt.JwtUtil;
@@ -57,13 +58,14 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((auth) -> auth
-                // swagger 설정
-                        .requestMatchers("/swagger", "/swagger-ui.html", "/swagger-ui/**", "/api-docs", "/api-docs/**", "/v3/api-docs/**").permitAll()
-                // Spring Security Filter 적용하기
-                        .requestMatchers("/", "/env", "/api-member/**", "/login**", "api-file/**").permitAll()
-                        .requestMatchers("/api-admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api-reporter/**", "api-news/**").hasAnyRole("ADMIN", "MANAGER")
                         .anyRequest().authenticated())
+//                // swagger 설정
+//                        .requestMatchers("/swagger", "/swagger-ui.html", "/swagger-ui/**", "/api-docs", "/api-docs/**", "/v3/api-docs/**").permitAll()
+//                // Spring Security Filter 적용하기
+//                        .requestMatchers("/", "/env", "/api-member/**", "/login**", "api-file/**").permitAll()
+//                        .requestMatchers("/api-admin/**").hasRole(Role.ADMIN.name())
+//                        .requestMatchers("/api-reporter/**", "/api-news/**").hasAnyRole(Role.ADMIN.name(), Role.MANAGER.name())
+//                        .anyRequest().authenticated())
                 .addFilterBefore(new JWTFilter(memberRepository, jwtUtil), LoginFilter.class)
                 .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, "/api-member/login"), UsernamePasswordAuthenticationFilter.class)
                 .logout((logout)-> logout.logoutUrl("/api-member/logout"))

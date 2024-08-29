@@ -33,7 +33,7 @@ public class PerformanceEntity {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long prfid;				    //공연 ID (Primary Key) | mt20id
 
-    @Column(length=10)
+    @Column(length=10, unique=true)
     private String kopisId;             // KOPIS 관리 ID
 
     @Column

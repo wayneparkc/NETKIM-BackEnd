@@ -13,6 +13,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -38,13 +39,13 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         //스프링 시큐리티에서 username과 password를 검증하기 위해서는 token에 담아야 함
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(username, password);
 
-        //token에 담은 검증을 위한 AuthenticationManager로 전달
+        // token에 담은 검증을 위한 AuthenticationManager로 전달
         return authenticationManager.authenticate(authToken);
     }
 
     // 로그인 성공 -> JWT 발급
     @Override
-    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) {
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException {
         System.out.println("successful authentication");
         MemberEntity memberEntity = (MemberEntity) authentication.getPrincipal();
 
@@ -58,7 +59,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         String token  = jwtUtil.createToken(memberIdx, role);
 
-        response.addHeader("Authorization", "Bearer " + token);
+//        response.addHeader("Authorization", "Bearer " + token);
+        response.getOutputStream().print("Bearer " + token);
     }
 
     //로그인 실패시 실행하는 메소드

@@ -101,6 +101,9 @@ public class PerformanceServiceImpl implements PerformanceService {
                     Node nNode=nList.item(i);
                     if(nNode.getNodeType()==Node.ELEMENT_NODE) {
                         Element eElement=(Element) nNode;
+                        if(performanceRepository.existsByKopisId(getTagValue("mt20id", eElement))){
+                            continue;
+                        }
                         PerformanceEntity performance = PerformanceEntity.builder()
                                 .kopisId(getTagValue("mt20id", eElement))
                                 .prfnm(getTagValue("prfnm", eElement))

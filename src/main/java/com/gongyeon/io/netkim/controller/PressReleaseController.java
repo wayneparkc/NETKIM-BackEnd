@@ -50,7 +50,8 @@ public class PressReleaseController {
     @Operation(summary="보도자료 미리보기")
     @PostMapping("/preview")
     public ResponseEntity<PressReleaseEntity> preview(@RequestBody PressRelease pressRelease){
-        return new ResponseEntity<>(pressReleaseService.previewRelease(pressRelease), HttpStatus.OK);
+        PressReleaseEntity pr = pressReleaseService.previewRelease(pressRelease);
+        return new ResponseEntity<>(pr, HttpStatus.OK);
     }
 
     @Operation(summary="보도자료 저장하기")
