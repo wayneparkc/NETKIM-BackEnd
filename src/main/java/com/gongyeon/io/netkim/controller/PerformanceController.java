@@ -50,6 +50,7 @@ public class PerformanceController {
     // 공연 이름으로 정보 찾는 조회 메서드
     @PostMapping("/find")
     public ResponseEntity<PerformanceEntity> getPerformanceByName(@RequestBody Map<String, String> map) {
+        System.out.println(map);
         try{
             PerformanceEntity performance = performanceService.getDetailName(map.get("prfnm"));
             return new ResponseEntity<>(performance, HttpStatus.OK);

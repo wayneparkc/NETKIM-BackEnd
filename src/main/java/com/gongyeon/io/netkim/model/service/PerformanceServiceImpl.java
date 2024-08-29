@@ -57,8 +57,9 @@ public class PerformanceServiceImpl implements PerformanceService {
             throw new NullPointerException();
         }
         if(performance.getEntrpsnm()==null) {
-            updatePerformance(performance.getKopisId());
+            this.updatePerformance(performance.getKopisId());
         }
+        System.out.println(performance);
         return performance;
     }
 
