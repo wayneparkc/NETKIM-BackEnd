@@ -78,6 +78,8 @@ public class PressReleaseServiceImpl implements PressReleaseService {
     @Operation(summary = "미리보기 제작 메서드", description = "별도로 저장은 하지 않고, 가지고 있는 정보를 가지고 임시본을 제작한다.")
     @Override
     public PressReleaseEntity previewRelease(PressRelease pressRelease) {
+        System.out.println("왜 안될까");
+        System.out.println(pressRelease);
         PerformanceEntity performance = performanceRepository.findByPrfid(pressRelease.getPerformanceId());
         return PressReleaseEntity.builder()
                 .headLine(makeHeadLine(performance, pressRelease))
@@ -196,7 +198,12 @@ public class PressReleaseServiceImpl implements PressReleaseService {
     }
 
     private String makeHeadLine(PerformanceEntity performance, PressRelease pressRelease) {
-        return pressRelease.getKey() + ", 뮤지컬 '"+ performance.getPrfnm() +"'"+ " "+performance.getPrfdfrom().getMonthValue()+"월 "+performance.getPrfdfrom().getDayOfMonth()+"일 개막";
+        StringBuilder sb = new StringBuilder();
+        if(pressRelease.getKey()!=null || !pressRelease.getKey().equals("")) {
+            sb.append(pressRelease.getKey()).append(", ");
+        }
+        sb.append("뮤지컬 '").append(performance.getPrfnm()).append("'").append(" ").append(performance.getPrfdfrom().getMonthValue()).append("월 ").append(performance.getPrfdfrom().getDayOfMonth()).append("일 개막");
+        return sb.toString();
     }
 
     private String makeBody(PerformanceEntity performance, PressRelease pressRelease) {

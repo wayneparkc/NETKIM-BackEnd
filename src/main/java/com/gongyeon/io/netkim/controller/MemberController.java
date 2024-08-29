@@ -7,6 +7,7 @@ import com.gongyeon.io.netkim.model.repository.MemberRepository;
 import com.gongyeon.io.netkim.model.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.coyote.BadRequestException;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -63,10 +64,13 @@ public class MemberController {
         } catch (ChangeSetPersister.NotFoundException e) {
             // 사용자를 찾을 수 없을 때
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        } catch (IOException e) {
+        } catch (BadRequestException exception) {
             // 파일 저장 중 오류가 발생했을 때
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (IOException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

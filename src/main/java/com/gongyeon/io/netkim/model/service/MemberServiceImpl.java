@@ -6,6 +6,7 @@ import com.gongyeon.io.netkim.model.entity.Role;
 import com.gongyeon.io.netkim.model.jwt.JwtUtil;
 import com.gongyeon.io.netkim.model.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpHeaders;
@@ -70,6 +71,9 @@ public class MemberServiceImpl implements MemberService, UserDetailsService {
 
         if(member == null) {
             throw new NotFoundException();
+        }
+        if(!member.getRole().equals(Role.MEMBER)) {
+            throw new BadRequestException();
         }
 
         File videoFolder = new File("data/certificates/");
