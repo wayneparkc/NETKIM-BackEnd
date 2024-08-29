@@ -60,7 +60,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests((auth) -> auth
 //                // swagger 설정
                         .requestMatchers("/swagger", "/swagger-ui.html", "/swagger-ui/**", "/api-docs", "/api-docs/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/", "/env", "/api-member/**", "/login**", "api-file/**").permitAll()
+                        .requestMatchers("/", "/env", "/api-member/**", "/api-file/**").permitAll()
 //                // Spring Security Filter 적용하기
                         .requestMatchers("/api-admin/**").hasAuthority("ADMIN")
                         .requestMatchers("/api-reporter/**", "/api-news/**").hasAnyAuthority(Role.ADMIN.name(), Role.MANAGER.name())

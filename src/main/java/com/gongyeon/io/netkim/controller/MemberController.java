@@ -1,14 +1,12 @@
 package com.gongyeon.io.netkim.controller;
 
 import com.gongyeon.io.netkim.model.dto.Member;
-import com.gongyeon.io.netkim.model.entity.MemberEntity;
-import com.gongyeon.io.netkim.model.jwt.JwtUtil;
-import com.gongyeon.io.netkim.model.repository.MemberRepository;
 import com.gongyeon.io.netkim.model.service.MemberService;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.coyote.BadRequestException;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.http.HttpHeaders;
@@ -17,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -90,9 +87,11 @@ public class MemberController {
 
     @Operation(summary="메일 인증 확인", description="backend 기록용 -> 프론트는 존재만 확인하면 됨.")
     @GetMapping("/verify")
-    public ResponseEntity<?> makeCertify(@RequestParam(name="email") String email, @RequestParam(name = "vnumber") String vnumber) {
-       if(memberService.verifyMail(email, vnumber))
-            return new ResponseEntity<>(HttpStatus.OK);
-       return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    public ResponseEntity<String> makeCertify(@RequestParam(name="email") String email, @RequestParam(name = "vnumber") String vnumber, HttpServletResponse response) throws IOException {
+       if(memberService.verifyMail(email, vnumber)) {
+           response.sendRedirect("https://netkim.vercel.app/");
+           return new ResponseEntity<>("인증이 완료되었습니다. 이 창을 종료해주시기 바랍니다.", HttpStatus.OK);
+       }
+       return new ResponseEntity<>("잘못된 요청입니다. 다시 시도해주시기 바랍니다.", HttpStatus.BAD_REQUEST);
     }
 }
