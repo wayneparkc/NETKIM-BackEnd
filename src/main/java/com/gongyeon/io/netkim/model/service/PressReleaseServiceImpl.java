@@ -21,7 +21,6 @@ import kr.dogfoot.hwplib.object.bodytext.control.ControlType;
 import kr.dogfoot.hwplib.object.bodytext.control.table.Cell;
 import kr.dogfoot.hwplib.object.bodytext.control.table.Row;
 import kr.dogfoot.hwplib.object.bodytext.paragraph.Paragraph;
-import kr.dogfoot.hwplib.object.bodytext.paragraph.text.ParaText;
 import kr.dogfoot.hwplib.reader.HWPReader;
 import kr.dogfoot.hwplib.tool.objectfinder.ControlFilter;
 import kr.dogfoot.hwplib.tool.objectfinder.ControlFinder;
@@ -33,7 +32,6 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -93,8 +91,8 @@ public class PressReleaseServiceImpl implements PressReleaseService {
     public PressReleaseEntity makeRelease(HttpHeaders headers, PressRelease pressRelease) throws Exception {
         long memberIdx = jwtUtil.getMemberIdx(headers.getFirst("Authorization").split(" ")[1]);
         long prfId = pressRelease.getPerformanceId();
-        String filepath = "C://Users/SSAFY/Desktop/";
-//        String filepath = "data/hwp/";
+//        String filepath = "C://Users/SSAFY/Desktop/";
+        String filepath = "data/hwp/";
         PerformanceEntity performance = performanceRepository.findByPrfid(prfId);
         String filename = performance.getKopisId() + "_pr.hwp";
 
@@ -137,7 +135,7 @@ public class PressReleaseServiceImpl implements PressReleaseService {
                 .memberIdx(memberIdx)
                 .headLine(makeHeadLine(performance, pressRelease))
                 .content(makeBody(performance, pressRelease))
-                .filename(filename)
+                .filename("https://gongyeon.kro.kr/api-file/press/"+filename)
                 .build();
         pressReleaseRepository.save(pressReleaseEntity);
         return pressReleaseEntity;
@@ -208,7 +206,7 @@ public class PressReleaseServiceImpl implements PressReleaseService {
         String synopsis = pressRelease.getSynopsis();
         String cast = pressRelease.getActors();
 
-        StringBuilder content = new StringBuilder(" 뮤지컬 '"+ title +"'"+ getParticle(title, false)+" 오는 "+stDate.getMonthValue()+"월 "+stDate.getDayOfMonth()+"일 개막한다.");
+        StringBuilder content = new StringBuilder("○ 뮤지컬 '"+ title +"'"+ getParticle(title, false)+" 오는 "+stDate.getMonthValue()+"월 "+stDate.getDayOfMonth()+"일 개막한다.");
         if(synopsis != null && !synopsis.isEmpty()) {
             content.append("\n\n○ 뮤지컬 '").append(title).append("'").append(getParticle(title, true)).append(" ").append(synopsis).append("는 이야기로 ").append(performance.getPrfruntime()).append("분간 관객에게 감동을 선사한다.");
         }
@@ -220,7 +218,11 @@ public class PressReleaseServiceImpl implements PressReleaseService {
         if(pressRelease.getInterviewee() != null && !pressRelease.getInterviewee().isEmpty()) {
             content.append("\n\n").append("○ 이번 뮤지컬에 참여한 '").append(pressRelease.getInterviewee()).append(getParticle(pressRelease.getInterviewee(), true)).append("'").append(pressRelease.getInterviewContent()).append("'라며 소감을 남겼다.");
         }
-        content.append("\n\n").append("○ 한편, 이번 뮤지컬 '").append(title).append("'").append(getParticle(title, true)).append(" 오는 ").append(stDate.getMonthValue()).append("월 ").append(stDate.getDayOfMonth()).append("일 부터").append(endDate.getMonthValue()).append("월 ").append(endDate.getDayOfMonth()).append("일 까지 ").append(performance.getFcltynm()).append("에서 공연한다. //끝//");;
+        content.append("\n\n").append("○ 한편, 이번 뮤지컬 '").append(title).append("'").append(getParticle(title, true));
+        if(pressRelease.getSeats() > 1000){
+            content.append(pressRelease.getSeats()).append(" 이상의 관객이 찾아와 관람하였으며,");
+        }
+        content.append(" 오는 ").append(stDate.getMonthValue()).append("월 ").append(stDate.getDayOfMonth()).append("일 부터").append(endDate.getMonthValue()).append("월 ").append(endDate.getDayOfMonth()).append("일 까지 ").append(performance.getFcltynm()).append("에서 공연된다. //끝//");;
 
         return content.toString();
     }

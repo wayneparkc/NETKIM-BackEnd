@@ -55,9 +55,9 @@ public class PressReleaseController {
 
     @Operation(summary="보도자료 저장하기")
     @PostMapping("")
-    public ResponseEntity<?> writeRelease(@RequestHeader HttpHeaders headers, @RequestBody PressRelease pressRelease) throws Exception {
-        pressReleaseService.makeRelease(headers, pressRelease);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<PressReleaseEntity> writeRelease(@RequestHeader HttpHeaders headers, @RequestBody PressRelease pressRelease) throws Exception {
+        PressReleaseEntity pressReleaseEntity = pressReleaseService.makeRelease(headers, pressRelease);
+        return new ResponseEntity<>(pressReleaseEntity, HttpStatus.OK);
     }
 
     @GetMapping("/file/{pressReleaseId}")

@@ -81,7 +81,7 @@ public class MemberServiceImpl implements MemberService, UserDetailsService {
         String today = Long.toString(System.currentTimeMillis());
 
         String fileId = today + "_" + certificate.getOriginalFilename();
-        member.setCertificateImg(fileId);
+        member.setCertificateImg("https://gongyeon.kro.kr/api-file/press/"+fileId);
 
         System.out.println(videoFolder.getAbsolutePath());
         certificate.transferTo(new File(videoFolder.getAbsolutePath(), fileId));
@@ -96,6 +96,8 @@ public class MemberServiceImpl implements MemberService, UserDetailsService {
         if(member == null || member.isCertify()) {
             return false;
         }
+
+
         String title = "공연이요 이메일 인증 안내";
         String authCode = this.createCode();
         String content = String.format(
@@ -163,7 +165,7 @@ public class MemberServiceImpl implements MemberService, UserDetailsService {
             }
             return builder.toString();
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+            System.out.println("이메일 인증 코드 생성 중 오류 발생"+e);
             return "971030";
         }
     }

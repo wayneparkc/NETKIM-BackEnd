@@ -52,15 +52,15 @@ public class SecurityConfig {
     // 로그인 등 SpringSecurity 설정 중
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, DispatcherServletAutoConfiguration dispatcherServletAutoConfiguration, MemberRepository memberRepository) throws Exception {
-        // 인증 확인 현재는 안하고 있음. 완성 시 Request 발송 시 JWT를 활용하거나 기타 값을 포함할 수 있도록 제작 예정
         http.
                 csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((auth) -> auth
-//                        .anyRequest().permitAll())
+                // swagger 설정
+                        .requestMatchers("/swagger", "/swagger-ui.html", "/swagger-ui/**", "/api-docs", "/api-docs/**", "/v3/api-docs/**").permitAll()
                 // Spring Security Filter 적용하기
-                        .requestMatchers("/", "/env", "/api-member/**", "/login**").permitAll()
+                        .requestMatchers("/", "/env", "/api-member/**", "/login**", "api-file/**").permitAll()
                         .requestMatchers("/api-admin/**").hasRole("ADMIN")
                         .requestMatchers("/api-reporter/**", "api-news/**").hasAnyRole("ADMIN", "MANAGER")
                         .anyRequest().authenticated())

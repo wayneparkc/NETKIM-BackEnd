@@ -48,7 +48,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         System.out.println("successful authentication");
         MemberEntity memberEntity = (MemberEntity) authentication.getPrincipal();
 
-        int memberIdx = memberEntity.getMemberIdx();
+        long memberIdx = memberEntity.getMemberIdx();
 
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         Iterator<? extends GrantedAuthority> iterator = authorities.iterator();

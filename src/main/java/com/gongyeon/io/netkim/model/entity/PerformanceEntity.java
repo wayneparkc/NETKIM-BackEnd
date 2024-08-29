@@ -11,10 +11,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.StringTokenizer;
 
 @Entity
 @Table(name="performance")
@@ -99,12 +95,14 @@ public class PerformanceEntity {
 
     // 공연 특징 제공 시 StringType으로 저장된 것 Parsing 하여 제공
     // 제1정규화에 위배되나, DB 관리의 용이성을 위해 역정규화 실시
-    public List<String> getFeature() {
-        List<String> FeatureList = new ArrayList<>();
-        StringTokenizer st = new StringTokenizer(this.feature, ",");
-        while(st.hasMoreTokens()) {
-            FeatureList.add(st.nextToken());
-        }
-        return FeatureList;
-    }
+//    public List<String> getFeature() {
+//        List<String> FeatureList = new ArrayList<>();
+//        StringTokenizer st = new StringTokenizer(this.feature, ",");
+//        while(st.hasMoreTokens()) {
+//            FeatureList.add(st.nextToken());
+//        }
+//        return FeatureList;
+//    }
+
+
 }

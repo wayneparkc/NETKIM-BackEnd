@@ -24,16 +24,17 @@ public class JwtUtil {
     public long getMemberIdx(String token){
         return Long.parseLong(Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("memberIdx", String.class));
     }
+
     public String getRole(String token) {
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("USER_ROLE", String.class);
     }
 
-    public String createToken(int memberIdx, String userRole) {
+    public String createToken(long memberIdx, String userRole) {
         // 유효 시간 : 1시간 (1000 -> 1초 * 60 (1분) * 60 (1시간))
         Date exp = new Date(System.currentTimeMillis() + 1000*60*60*24*15);
         return Jwts.builder().
                 header().add("typ", "JWT")
-                .and().claim("memberIdx", Integer.toString(memberIdx))
+                .and().claim("memberIdx", Long.toString(memberIdx))
                 .claim("USER_ROLE", userRole)
                 .expiration(exp).signWith(secretKey)
                 .compact();
