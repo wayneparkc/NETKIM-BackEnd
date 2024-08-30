@@ -14,12 +14,15 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import kr.dogfoot.hwplib.object.HWPFile;
+import kr.dogfoot.hwplib.object.bodytext.Section;
 import kr.dogfoot.hwplib.object.bodytext.control.Control;
 import kr.dogfoot.hwplib.object.bodytext.control.ControlTable;
 import kr.dogfoot.hwplib.object.bodytext.control.ControlType;
 import kr.dogfoot.hwplib.object.bodytext.control.table.Cell;
 import kr.dogfoot.hwplib.object.bodytext.control.table.Row;
+import kr.dogfoot.hwplib.object.bodytext.paragraph.Paragraph;
 import kr.dogfoot.hwplib.reader.HWPReader;
+import kr.dogfoot.hwplib.tool.objectfinder.ControlFilter;
 import kr.dogfoot.hwplib.tool.objectfinder.ControlFinder;
 import kr.dogfoot.hwplib.writer.HWPWriter;
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
@@ -44,6 +47,7 @@ public class PressReleaseServiceImpl implements PressReleaseService {
     private final PerformanceRepository performanceRepository;
     private final ReporterRepository reporterRepository;
     private final MemberRepository memberRepository;
+    private final InsertingImage insertingImage = new InsertingImage();
 
     public PressReleaseServiceImpl(PressReleaseRepository pressReleaseRepository, JavaMailSender mailSender, JwtUtil jwtUtil, PerformanceRepository performanceRepository, ReporterRepository reporterRepository, MemberRepository memberRepository) {
         this.pressReleaseRepository = pressReleaseRepository;
@@ -76,8 +80,6 @@ public class PressReleaseServiceImpl implements PressReleaseService {
     @Operation(summary = "미리보기 제작 메서드", description = "별도로 저장은 하지 않고, 가지고 있는 정보를 가지고 임시본을 제작한다.")
     @Override
     public PressReleaseEntity previewRelease(PressRelease pressRelease) {
-        System.out.println("왜 안될까");
-        System.out.println(pressRelease);
         PerformanceEntity performance = performanceRepository.findByPrfid(pressRelease.getPerformanceId());
         return PressReleaseEntity.builder()
                 .headLine(makeHeadLine(performance, pressRelease))
@@ -91,6 +93,7 @@ public class PressReleaseServiceImpl implements PressReleaseService {
     @Override
     public PressReleaseEntity makeRelease(HttpHeaders headers, PressRelease pressRelease) throws Exception {
         long memberIdx = jwtUtil.getMemberIdx(headers.getFirst("Authorization").split(" ")[1]);
+        MemberEntity member = memberRepository.findByMemberIdx(memberIdx);
         long prfId = pressRelease.getPerformanceId();
 //        String filepath = "C://Users/SSAFY/Desktop/";
         String filepath = "data/hwp/";
@@ -99,8 +102,13 @@ public class PressReleaseServiceImpl implements PressReleaseService {
 
         // 내용 불러오기
         HWPFile file = HWPReader.fromFile(filepath+"NewForm.hwp");
-        // 한 파일 내에서 Table의 속성을 가진 모든 객체를 찾기 위하여, 테이블 속성을 가졌는지 확인하는 메서드
-        ArrayList<Control> result = ControlFinder.find(file, (control, paragraph, section) -> control.getType() == ControlType.Table);
+        ArrayList<Control> result = ControlFinder.find(file, new ControlFilter(){
+            // 한 파일 내에서 Table의 속성을 가진 모든 객체를 찾기 위하여, 테이블 속성을 가졌는지 확인하는 메서드
+            @Override
+            public boolean isMatched(Control control, Paragraph paragraph, Section section) {
+                return control.getType() == ControlType.Table;
+            }
+        });
 
         if(result != null && !result.isEmpty()) {
             // 보도자료 작성 양식의 본문 찾기
@@ -111,28 +119,44 @@ public class PressReleaseServiceImpl implements PressReleaseService {
             releaseDateRow.getCellList().get(2).getParagraphList().getParagraph(0).getText().addString("즉시 사용 가능합니다.");
             releaseDateRow.getCellList().get(4).getParagraphList().getParagraph(0).getText().addString(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd. hh:mm")));
 
-            Cell bodyCell = table.getRowList().get(2).getCellList().get(0);
-            bodyCell.getParagraphList().addNewParagraph();
+            Cell headCell = table.getRowList().get(3).getCellList().get(1);
+            headCell.getParagraphList().getParagraph(0).getText().addString(makeHeadLine(performance, pressRelease));
+
+            Cell bodyCell = table.getRowList().get(4).getCellList().get(0);
             bodyCell.getParagraphList().getParagraph(0).getText().addString(makeBody(performance, pressRelease));
 
-            // 수정이 완료되면 바뀐 내용을 확인해요!
-            for(Row row : table.getRowList()) {
-                for(Cell cell : row.getCellList()) {
-                    System.out.print(cell.getParagraphList().getNormalString() + " | ");
-                }
-                System.out.println();
+            if(member.getCompany() != null) {
+                table.getRowList().get(5).getCellList().get(1).getParagraphList().getParagraph(0).getText().addString(member.getCompany());
             }
+            table.getRowList().get(5).getCellList().get(3).getParagraphList().getParagraph(0).getText().addString(member.getMemberName());
+            table.getRowList().get(5).getCellList().get(4).getParagraphList().getParagraph(0).getText().addString(member.getPhone());
+
+            insertingImage.insertShapeWithImage(performance.getPoster(), file);
+            // 수정이 완료되면 바뀐 내용을 확인해요!
+//            for(Row row : table.getRowList()) {
+//                for(Cell cell : row.getCellList()) {
+//                    System.out.print(cell.getParagraphList().getNormalString() + " | ");
+//                }
+//                System.out.println();
+//            }
 
             HWPWriter.toFile(file, filepath + filename);
         }
-
-        PressReleaseEntity pressReleaseEntity = PressReleaseEntity.builder()
-                .performance(performance)
-                .memberIdx(memberIdx)
-                .headLine(makeHeadLine(performance, pressRelease))
-                .content(makeBody(performance, pressRelease))
-                .filename("https://gongyeon.kro.kr/api-file/press/"+filename)
-                .build();
+        PressReleaseEntity pressReleaseEntity = pressReleaseRepository.findByPerformance_Prfid(performance.getPrfid());
+        if(pressReleaseEntity != null) {
+            pressReleaseEntity.setHeadLine(makeHeadLine(performance, pressRelease));
+            pressReleaseEntity.setContent(makeBody(performance, pressRelease));
+            pressReleaseEntity.setFilename("https://gongyeon.kro.kr/api-file/press/"+filename);
+            pressReleaseEntity.setMemberIdx(memberIdx);
+        }else{
+            pressReleaseEntity = PressReleaseEntity.builder()
+                    .performance(performance)
+                    .memberIdx(memberIdx)
+                    .headLine(makeHeadLine(performance, pressRelease))
+                    .content(makeBody(performance, pressRelease))
+                    .filename("https://gongyeon.kro.kr/api-file/press/"+filename)
+                    .build();
+        }
         pressReleaseRepository.save(pressReleaseEntity);
         return pressReleaseEntity;
     }
@@ -140,13 +164,18 @@ public class PressReleaseServiceImpl implements PressReleaseService {
     @Override
     public String getReleaseFile() throws Exception {
         HWPFile file = HWPReader.fromFile("data/hwp/NewForm.hwp");
-        // 한 파일 내에서 Table의 속성을 가진 모든 객체를 찾기 위하여, 테이블 속성을 가졌는지 확인하는 메서드
-        ArrayList<Control> result = ControlFinder.find(file, (control, paragraph, section) -> control.getType() == ControlType.Table);
+        ArrayList<Control> result = ControlFinder.find(file, new ControlFilter(){
+            // 한 파일 내에서 Table의 속성을 가진 모든 객체를 찾기 위하여, 테이블 속성을 가졌는지 확인하는 메서드
+            @Override
+            public boolean isMatched(Control control, Paragraph paragraph, Section section) {
+                return control.getType() == ControlType.Table;
+            }
+        });
 
         if(result != null && !result.isEmpty()) {
             Control control = result.get(0);
             ControlTable table = (ControlTable) control;
-            
+
             for(Row row : table.getRowList()) {
                 for(Cell cell : row.getCellList()) {
                     System.out.print(cell.getParagraphList().getNormalString() + " | ");
@@ -187,11 +216,12 @@ public class PressReleaseServiceImpl implements PressReleaseService {
     }
 
     private String makeHeadLine(PerformanceEntity performance, PressRelease pressRelease) {
+        String title = performance.getPrfnm().replaceAll("\\[.*?\\]|\\(.*?\\)", "").trim();
         StringBuilder sb = new StringBuilder();
         if(pressRelease.getKey()!=null || !pressRelease.getKey().equals("")) {
             sb.append(pressRelease.getKey()).append(", ");
         }
-        sb.append("뮤지컬 '").append(performance.getPrfnm()).append("'").append(" ").append(performance.getPrfdfrom().getMonthValue()).append("월 ").append(performance.getPrfdfrom().getDayOfMonth()).append("일 개막");
+        sb.append("뮤지컬 '").append(title).append("'").append(" ").append(performance.getPrfdfrom().getMonthValue()).append("월 ").append(performance.getPrfdfrom().getDayOfMonth()).append("일 개막");
         return sb.toString();
     }
 
@@ -218,13 +248,13 @@ public class PressReleaseServiceImpl implements PressReleaseService {
         if(pressRelease.getSeats() > 1000){
             content.append(pressRelease.getSeats()).append(" 이상의 관객이 찾아와 관람하였으며,");
         }
-        content.append(" 오는 ").append(stDate.getMonthValue()).append("월 ").append(stDate.getDayOfMonth()).append("일 부터 ").append(endDate.getMonthValue()).append("월 ").append(endDate.getDayOfMonth()).append("일 까지 ").append(performance.getFcltynm()).append("에서 공연된다. //끝//");
+        content.append(" 오는 ").append(stDate.getMonthValue()).append("월 ").append(stDate.getDayOfMonth()).append("일 부터 ").append(endDate.getMonthValue()).append("월 ").append(endDate.getDayOfMonth()).append("일 까지 ").append(performance.getFcltynm()).append("에서 공연된다. //끝//");;
 
         return content.toString();
     }
-    
+
     // 조사를 결정하여 반환하는 메서드
-    private static String getParticle(String word, boolean isSubject) {
+    private String getParticle(String word, boolean isSubject) {
         if (word == null || word.isEmpty()) {
             return "";
         }
@@ -247,14 +277,14 @@ public class PressReleaseServiceImpl implements PressReleaseService {
 
         return ""; // 한글이 아닌 경우 빈 문자열 반환
     }
-    
+
     // UTF-8 에 따라, 한글인지 판별하는 메서드
-    private static boolean isHangul(char c) {
+    private boolean isHangul(char c) {
         return c >= 0xAC00 && c <= 0xD7A3;
     }
-    
+
     // 종성을 가지고 있는지 확인하는 메서드
-    private static boolean hasFinalConsonant(char c) {
+    private boolean hasFinalConsonant(char c) {
         int base = 0xAC00;
         int finalConsonantCount = 28;
         int index = c - base;

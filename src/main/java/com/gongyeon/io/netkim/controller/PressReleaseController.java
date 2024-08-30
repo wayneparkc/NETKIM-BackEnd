@@ -6,15 +6,11 @@ import com.gongyeon.io.netkim.model.repository.PressReleaseRepository;
 import com.gongyeon.io.netkim.model.service.PressReleaseService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.mail.MessagingException;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.util.UriUtils;
 
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
@@ -28,7 +24,7 @@ public class PressReleaseController {
         this.pressReleaseService = pressReleaseService;
         this.pressReleaseRepository = pressReleaseRepository;
     }
-    
+
     @Operation(summary="작성한 보도자료 전체 조회 메서드")
     @GetMapping("")
     public ResponseEntity<List<PressReleaseEntity>> read(@RequestHeader HttpHeaders headers) throws Exception {
@@ -54,30 +50,31 @@ public class PressReleaseController {
         return new ResponseEntity<>(pr, HttpStatus.OK);
     }
 
-    @Operation(summary="보도자료 저장하기")
+    @Operation(summary="보도자료 저장하기", description="보도자료 파일을 작성하고, 저장을 시킨 후에 완성된 보도자료 id 넘기기")
     @PostMapping("")
     public ResponseEntity<PressReleaseEntity> writeRelease(@RequestHeader HttpHeaders headers, @RequestBody PressRelease pressRelease) throws Exception {
         PressReleaseEntity pressReleaseEntity = pressReleaseService.makeRelease(headers, pressRelease);
         return new ResponseEntity<>(pressReleaseEntity, HttpStatus.OK);
     }
 
-    @GetMapping("/file/{pressReleaseId}")
-    public ResponseEntity<Resource> getFile(@PathVariable("pressReleaseId") long pressReleaseId) throws Exception {
 
-        PressReleaseEntity file = pressReleaseRepository.findByPressReleaseId(pressReleaseId);
-
-        String filename = file.getFilename();
-        String filePath = "data/hwp/" + filename;
-
-        Resource resource = new UrlResource(Paths.get(filePath).toUri());
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + UriUtils.encode(filename, "UTF-8") + "\"")
-                .body(resource);
-    }
+//    @GetMapping("/file/{pressReleaseId}")
+//    public ResponseEntity<Resource> getFile(@PathVariable("pressReleaseId") long pressReleaseId) throws Exception {
+//
+//        PressReleaseEntity file = pressReleaseRepository.findByPressReleaseId(pressReleaseId);
+//
+//        String filename = file.getFilename();
+//        String filePath = "data/hwp/" + filename;
+//
+//        Resource resource = new UrlResource(Paths.get(filePath).toUri());
+//
+//        return ResponseEntity.ok()
+//                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + UriUtils.encode(filename, "UTF-8") + "\"")
+//                .body(resource);
+//    }
 
     @PostMapping("/file")
-    @Operation(description = "파일 메일 전송 메서드")
+    @Operation(summary="메일 전송", description = "파일 메일 전송 메서드")
     public ResponseEntity<Integer> sendFile(@RequestHeader HttpHeaders headers, @RequestBody Map<String, Long> map) throws MessagingException {
         long pressReleaseId = map.get("pressReleaseId");
         int result = pressReleaseService.sendReleaseFile(headers, pressReleaseId);

@@ -72,7 +72,7 @@ public class AdminController {
     @PostMapping("/default-pr")
     public ResponseEntity<Void> setDefaultReporter(@RequestBody Reporter reporter){
         // 중복검사
-        if(reporterRepository.findByEmailAndMemberIdx(reporter.getEmail(), 0)==null){
+        if(reporterRepository.findByEmailAndMemberIdx(reporter.getEmail(), 0)!=null){
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         

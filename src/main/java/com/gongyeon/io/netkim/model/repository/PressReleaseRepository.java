@@ -10,4 +10,5 @@ import java.util.List;
 public interface PressReleaseRepository extends JpaRepository<PressReleaseEntity, Integer> {
     List<PressReleaseEntity> findByMemberIdx(long memberIdx);
     PressReleaseEntity findByPressReleaseId(long pressReleaseId);
+    PressReleaseEntity findByPerformance_Prfid(long prfId);
 }
