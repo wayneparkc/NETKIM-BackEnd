@@ -2,9 +2,11 @@ package com.gongyeon.io.netkim.controller;
 
 import com.gongyeon.io.netkim.model.entity.PerformanceEntity;
 import com.gongyeon.io.netkim.model.service.PerformanceService;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,6 +31,7 @@ public class PerformanceController {
     }
 
     // 저장된 공연 전체 조회 메서드
+    @Hidden
     @GetMapping("/all-prf")
     public ResponseEntity<List<PerformanceEntity>> getAllPerformance() {
         List<PerformanceEntity> performanceList = performanceService.getAllPerformance();

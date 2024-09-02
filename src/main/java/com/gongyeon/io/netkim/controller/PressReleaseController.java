@@ -18,11 +18,9 @@ import java.util.Map;
 @RequestMapping("/api-news")
 public class PressReleaseController {
     private final PressReleaseService pressReleaseService;
-    private final PressReleaseRepository pressReleaseRepository;
 
-    public PressReleaseController(PressReleaseService pressReleaseService, PressReleaseRepository pressReleaseRepository) {
+    public PressReleaseController(PressReleaseService pressReleaseService) {
         this.pressReleaseService = pressReleaseService;
-        this.pressReleaseRepository = pressReleaseRepository;
     }
 
     @Operation(summary="작성한 보도자료 전체 조회 메서드")
@@ -57,21 +55,6 @@ public class PressReleaseController {
         return new ResponseEntity<>(pressReleaseEntity, HttpStatus.OK);
     }
 
-
-//    @GetMapping("/file/{pressReleaseId}")
-//    public ResponseEntity<Resource> getFile(@PathVariable("pressReleaseId") long pressReleaseId) throws Exception {
-//
-//        PressReleaseEntity file = pressReleaseRepository.findByPressReleaseId(pressReleaseId);
-//
-//        String filename = file.getFilename();
-//        String filePath = "data/hwp/" + filename;
-//
-//        Resource resource = new UrlResource(Paths.get(filePath).toUri());
-//
-//        return ResponseEntity.ok()
-//                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + UriUtils.encode(filename, "UTF-8") + "\"")
-//                .body(resource);
-//    }
 
     @PostMapping("/file")
     @Operation(summary="메일 전송", description = "파일 메일 전송 메서드")

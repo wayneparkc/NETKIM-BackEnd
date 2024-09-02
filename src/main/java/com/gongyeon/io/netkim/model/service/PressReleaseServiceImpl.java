@@ -57,11 +57,13 @@ public class PressReleaseServiceImpl implements PressReleaseService {
         this.reporterRepository = reporterRepository;
         this.memberRepository = memberRepository;
     }
-
+    
     @Override
+    @Operation(summary = "작성한 보도자료 조회 메서드")
+    @Transactional
     public List<PressReleaseEntity> getAllPressRelease(HttpHeaders headers) throws NotFoundException {
         long memberIdx = jwtUtil.getMemberIdx(headers.getFirst("Authorization").split(" ")[1]);
-        List<PressReleaseEntity> pressReleaseList = pressReleaseRepository.findByMemberIdx(memberIdx);
+        List<PressReleaseEntity> pressReleaseList = pressReleaseRepository.findByMemberIdxOrderByPressReleaseIdDesc(memberIdx);
         if(pressReleaseList==null || pressReleaseList.isEmpty()){
             throw new NotFoundException();
         }
@@ -132,66 +134,54 @@ public class PressReleaseServiceImpl implements PressReleaseService {
             table.getRowList().get(5).getCellList().get(4).getParagraphList().getParagraph(0).getText().addString(member.getPhone());
 
             insertingImage.insertShapeWithImage(performance.getPoster(), file);
-            // 수정이 완료되면 바뀐 내용을 확인해요!
-//            for(Row row : table.getRowList()) {
-//                for(Cell cell : row.getCellList()) {
-//                    System.out.print(cell.getParagraphList().getNormalString() + " | ");
-//                }
-//                System.out.println();
-//            }
 
             HWPWriter.toFile(file, filepath + filename);
         }
-        PressReleaseEntity pressReleaseEntity = pressReleaseRepository.findByPerformance_Prfid(performance.getPrfid());
-        if(pressReleaseEntity != null) {
-            pressReleaseEntity.setHeadLine(makeHeadLine(performance, pressRelease));
-            pressReleaseEntity.setContent(makeBody(performance, pressRelease));
-            pressReleaseEntity.setFilename("https://gongyeon.kro.kr/api-file/press/"+filename);
-            pressReleaseEntity.setMemberIdx(memberIdx);
-        }else{
-            pressReleaseEntity = PressReleaseEntity.builder()
+        PressReleaseEntity pressReleaseEntity = PressReleaseEntity.builder()
                     .performance(performance)
                     .memberIdx(memberIdx)
                     .headLine(makeHeadLine(performance, pressRelease))
                     .content(makeBody(performance, pressRelease))
                     .filename("https://gongyeon.kro.kr/api-file/press/"+filename)
                     .build();
-        }
         pressReleaseRepository.save(pressReleaseEntity);
         return pressReleaseEntity;
     }
 
+    // 저장된 파일 조회 메서드
+//    public String getReleaseFile() throws Exception {
+//        HWPFile file = HWPReader.fromFile("data/hwp/NewForm.hwp");
+//        ArrayList<Control> result = ControlFinder.find(file, new ControlFilter(){
+//            // 한 파일 내에서 Table의 속성을 가진 모든 객체를 찾기 위하여, 테이블 속성을 가졌는지 확인하는 메서드
+//            @Override
+//            public boolean isMatched(Control control, Paragraph paragraph, Section section) {
+//                return control.getType() == ControlType.Table;
+//            }
+//        });
+//
+//        if(result != null && !result.isEmpty()) {
+//            Control control = result.get(0);
+//            ControlTable table = (ControlTable) control;
+//
+//            for(Row row : table.getRowList()) {
+//                for(Cell cell : row.getCellList()) {
+//                    System.out.print(cell.getParagraphList().getNormalString() + " | ");
+//                }
+//                System.out.println();
+//            }
+//        }
+//        return file.getBodyText().toString();
+//    }
+
     @Override
-    public String getReleaseFile() throws Exception {
-        HWPFile file = HWPReader.fromFile("data/hwp/NewForm.hwp");
-        ArrayList<Control> result = ControlFinder.find(file, new ControlFilter(){
-            // 한 파일 내에서 Table의 속성을 가진 모든 객체를 찾기 위하여, 테이블 속성을 가졌는지 확인하는 메서드
-            @Override
-            public boolean isMatched(Control control, Paragraph paragraph, Section section) {
-                return control.getType() == ControlType.Table;
-            }
-        });
-
-        if(result != null && !result.isEmpty()) {
-            Control control = result.get(0);
-            ControlTable table = (ControlTable) control;
-
-            for(Row row : table.getRowList()) {
-                for(Cell cell : row.getCellList()) {
-                    System.out.print(cell.getParagraphList().getNormalString() + " | ");
-                }
-                System.out.println();
-            }
-        }
-        return file.getBodyText().toString();
-    }
-
-    @Override
+    @Transactional
     public int sendReleaseFile(HttpHeaders headers, long pressReleaseId) throws MessagingException {
         int result=0;
         long memberIdx = jwtUtil.getMemberIdx(headers.getFirst("Authorization").split(" ")[1]);
         MemberEntity memberEntity = memberRepository.findByMemberIdx(memberIdx);
         PressReleaseEntity pressRelease = pressReleaseRepository.findByPressReleaseId(pressReleaseId);
+        PerformanceEntity performance = pressRelease.getPerformance();
+
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         String msg = "안녕하세요? " + memberEntity.getCompany()+" "+memberEntity.getMemberName()+"입니다."
                 + "\n"+pressRelease.getPerformance().getPrfnm()+"관련 보도자료 보내드립니다."
@@ -207,7 +197,7 @@ public class PressReleaseServiceImpl implements PressReleaseService {
                 helper.setTo(reporterEntity.getEmail());
                 helper.setSubject(pressRelease.getHeadLine());
                 helper.setText(msg);
-                helper.addAttachment(pressRelease.getPerformance().getPrfnm()+" 보도자료", new File("data/hwp/"+pressRelease.getFilename()+".hwp"));
+                helper.addAttachment(performance.getPrfnm()+" 보도자료", new File("data/hwp/"+performance.getKopisId() + "_pr.hwp"));
                 mailSender.send(mimeMessage);
                 result++;
             }
@@ -237,12 +227,17 @@ public class PressReleaseServiceImpl implements PressReleaseService {
             content.append("\n\n○ 뮤지컬 '").append(title).append("'").append(getParticle(title, true)).append(" ").append(synopsis).append("는 이야기로 ").append(performance.getPrfruntime()).append("분간 관객에게 감동을 선사한다.");
         }
         if(cast != null && !cast.isEmpty()) {
-            content.append("\n\n").append("○ 이번 뮤지컬 '").append(title).append("'에서는 ").append(cast).append("등이 출연한다.");
+            content.append("\n\n").append("○ 이번 뮤지컬 '").append(title).append("'에서는 ").append(cast);
+            if(cast.charAt(cast.length()-1)=='등') {
+                content.append("이 출연한다.");
+            }else{
+                content.append("등이 출연한다.");
+            }
         }else{
             content.append("\n\n").append("○ 이번 뮤지컬 '").append(title).append("'에서는 ").append(performance.getPrfcast()).append("이 출연한다.");
         }
         if(pressRelease.getInterviewee() != null && !pressRelease.getInterviewee().isEmpty()) {
-            content.append("\n\n").append("○ 이번 뮤지컬에 참여한 '").append(pressRelease.getInterviewee()).append(getParticle(pressRelease.getInterviewee(), true)).append("'").append(pressRelease.getInterviewContent()).append("'라며 소감을 남겼다.");
+            content.append("\n\n").append("○ 이번 뮤지컬에 참여한 '").append(pressRelease.getInterviewee()).append("'는 '").append(getParticle(pressRelease.getInterviewee(), true)).append(pressRelease.getInterviewContent()).append("'라며 소감을 남겼다.");
         }
         content.append("\n\n").append("○ 한편, 이번 뮤지컬 '").append(title).append("'").append(getParticle(title, true));
         if(pressRelease.getSeats() > 1000){
