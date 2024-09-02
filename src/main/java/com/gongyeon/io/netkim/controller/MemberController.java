@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.coyote.BadRequestException;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -53,16 +52,16 @@ public class MemberController {
 
     @Operation(summary="권한 상승 요청", description="사용자들의 권한을 관리")
     @PostMapping("/role-manager")
-    public ResponseEntity<Void> roleManager(@RequestHeader HttpHeaders headers, @RequestPart("certificate") MultipartFile certificate) throws IOException {
+    public ResponseEntity<Void> roleManager(@RequestHeader HttpHeaders headers, @RequestPart("certificate") MultipartFile certificate, @RequestPart(value = "company", required = false) String company) {
         try {
-            memberService.upgradePlease(headers, certificate);
+            if(company==null)
+                memberService.upgradePlease(headers, certificate);
+            else
+                memberService.upgradePlease(headers, certificate, company);
         } catch (FileNotFoundException e) {
             // 이미지 파일이 없을 때
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (ChangeSetPersister.NotFoundException e) {
-            // 사용자를 찾을 수 없을 때
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        } catch (BadRequestException exception) {
+        }catch (BadRequestException exception) {
             // 파일 저장 중 오류가 발생했을 때
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } catch (IOException e) {
@@ -93,5 +92,18 @@ public class MemberController {
            return new ResponseEntity<>("인증이 완료되었습니다. 이 창을 종료해주시기 바랍니다.", HttpStatus.OK);
        }
        return new ResponseEntity<>("잘못된 요청입니다. 다시 시도해주시기 바랍니다.", HttpStatus.BAD_REQUEST);
+    }
+
+    @Operation(summary = "등업 요청 여부 확인")
+    @GetMapping("/check-level")
+    public ResponseEntity<Void> checkLevel(@RequestHeader HttpHeaders headers) {
+        try {
+            memberService.checkLevel(headers);
+            return new ResponseEntity<>(HttpStatus.OK);
+        }catch(BadRequestException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }catch(NullPointerException e) {
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
+        }
     }
 }

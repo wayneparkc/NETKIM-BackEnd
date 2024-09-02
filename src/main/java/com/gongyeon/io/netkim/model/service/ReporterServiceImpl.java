@@ -10,11 +10,27 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ReporterServiceImpl implements ReporterService {
     private final ReporterRepository reporterRepository;
     private final JwtUtil jwtUtil;
+
+    @Override
+    public List<ReporterEntity> selectAllReporter(HttpHeaders headers) throws BadRequestException {
+        long memberIdx = jwtUtil.getMemberIdx(headers.getFirst("Authorization").split(" ")[1]);
+        List<ReporterEntity> reporterList = reporterRepository.findAllByMemberIdx(memberIdx);
+        List<ReporterEntity> defaultReporterList = reporterRepository.findAllByMemberIdx(0);
+        reporterList.addAll(defaultReporterList);
+
+        if (reporterList.isEmpty()) {
+            throw new BadRequestException("조회된 기자 목록이 없습니다.");
+        }
+
+        return reporterList;
+    }
 
     @Override
     public void addReporter(HttpHeaders headers, Reporter reporter) throws BadRequestException {

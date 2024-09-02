@@ -4,6 +4,7 @@ import com.gongyeon.io.netkim.model.entity.PerformanceEntity;
 import com.gongyeon.io.netkim.model.repository.PerformanceRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -34,11 +35,13 @@ public class PerformanceServiceImpl implements PerformanceService {
     }
 
     @Override
+    @Transactional
     public List<String> getAllprfnm() {
         return performanceRepository.findPrfnmList();
     }
 
     @Override
+    @Transactional
     public PerformanceEntity getDetail(String kopisId) throws NullPointerException {
         PerformanceEntity performance = performanceRepository.findByKopisId(kopisId);
         // 기존에 상세조회가 되어 있는 경우에는 Query를 던질 필요가 없지만, 그렇지 않다면 Query를 다시 던진다.
@@ -53,15 +56,23 @@ public class PerformanceServiceImpl implements PerformanceService {
     }
 
     @Override
+    @Transactional
     public PerformanceEntity getDetailName(String prfnm) throws NullPointerException {
         PerformanceEntity performance = performanceRepository.findByPrfnm(prfnm);
-        if(performance == null || performance.getPrfnm() == null) {
+
+        if(performance == null) {
             throw new NullPointerException();
         }
-        if(performance.getEntrpsnm()==null) {
-            this.updatePerformance(performance.getKopisId());
-        }
         System.out.println(performance);
+        if(performance.getPrfcast() == null) {
+            System.out.println("업데이트 중");
+            try{
+                performance = updatePerformance(performance.getKopisId());
+            }catch(NullPointerException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+        System.out.println("이름으로 공연 조회 : " +prfnm);
         return performance;
     }
 
@@ -75,12 +86,12 @@ public class PerformanceServiceImpl implements PerformanceService {
                 // XML 호출값 URL세팅
                 StringBuilder apiQuery = new StringBuilder("http://www.kopis.or.kr/openApi/restful/pblprfr");				// URL
                 apiQuery.append("?service=").append(key); 			// Service Key
-                apiQuery.append("&").append(URLEncoder.encode("stdate", "UTF-8")).append("=").append(URLEncoder.encode("20160101", "UTF-8"));	// 검색 시작일
-                apiQuery.append("&").append(URLEncoder.encode("eddate", "UTF-8")).append("=").append(URLEncoder.encode("20251231", "UTF-8"));	// 검색 종료일
-                apiQuery.append("&").append(URLEncoder.encode("cpage", "UTF-8")).append("=").append(URLEncoder.encode(Integer.toString(page), "UTF-8")); 			// 페이지번호
-                apiQuery.append("&").append(URLEncoder.encode("rows", "UTF-8")).append("=").append(URLEncoder.encode("1000", "UTF-8"));			// 페이지당 목록 수
-                apiQuery.append("&").append(URLEncoder.encode("shcate", "UTF-8")).append("=").append(URLEncoder.encode("GGGA", "UTF-8"));		// 장르명(뮤지컬 고정)
-                apiQuery.append("&").append(URLEncoder.encode("newsql", "UTF-8")).append("=").append(URLEncoder.encode("Y", "UTF-8")); 		// 신규생성 메시지
+                apiQuery.append("&").append(URLEncoder.encode("stdate", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode("20160101", StandardCharsets.UTF_8));	// 검색 시작일
+                apiQuery.append("&").append(URLEncoder.encode("eddate", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode("20251231", StandardCharsets.UTF_8));	// 검색 종료일
+                apiQuery.append("&").append(URLEncoder.encode("cpage", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode(Integer.toString(page), StandardCharsets.UTF_8)); 			// 페이지번호
+                apiQuery.append("&").append(URLEncoder.encode("rows", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode("1000", StandardCharsets.UTF_8));			// 페이지당 목록 수
+                apiQuery.append("&").append(URLEncoder.encode("shcate", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode("GGGA", StandardCharsets.UTF_8));		// 장르명(뮤지컬 고정)
+                apiQuery.append("&").append(URLEncoder.encode("newsql", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode("Y", StandardCharsets.UTF_8)); 		// 신규생성 메시지
 //                System.out.println(apiQuery);																	// Query문 테스트
 
                 DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -129,13 +140,14 @@ public class PerformanceServiceImpl implements PerformanceService {
     }
 
     @Override
+    @Transactional
     public PerformanceEntity updatePerformance(String kopisId) {
+        StringBuilder apiQuery = new StringBuilder("http://www.kopis.or.kr/openApi/restful/pblprfr/");				// URL
         try {
             // Update 할 객체
             PerformanceEntity performance = performanceRepository.findByKopisId(kopisId);
 
             // Parcing 할 db 조회
-            StringBuilder apiQuery = new StringBuilder("http://www.kopis.or.kr/openApi/restful/pblprfr/");				// URL
             apiQuery.append(kopisId);
             apiQuery.append("?service=").append(key); 			// Service Key
             apiQuery.append("&").append(URLEncoder.encode("newsql", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode("Y", StandardCharsets.UTF_8)); 		// 신규생성 메시지
@@ -148,6 +160,7 @@ public class PerformanceServiceImpl implements PerformanceService {
 
             doc.getDocumentElement().normalize();
             NodeList nList = doc.getElementsByTagName("db");
+            System.out.println("파싱할 리스트 수 : "+ nList.getLength());
             Node nNode=nList.item(0);
             if(nNode.getNodeType()==Node.ELEMENT_NODE) {
                 Element eElement = (Element) nNode;
@@ -159,6 +172,8 @@ public class PerformanceServiceImpl implements PerformanceService {
             }
         }catch(Exception E) {
             System.out.println("업데이트 중 오류 발생" + E.getMessage());
+        }finally {
+            System.out.println(apiQuery);
         }
         return null;
     }

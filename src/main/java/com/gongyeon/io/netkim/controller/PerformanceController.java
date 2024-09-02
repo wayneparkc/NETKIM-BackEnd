@@ -2,6 +2,8 @@ package com.gongyeon.io.netkim.controller;
 
 import com.gongyeon.io.netkim.model.entity.PerformanceEntity;
 import com.gongyeon.io.netkim.model.service.PerformanceService;
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +18,8 @@ public class PerformanceController {
     public PerformanceController(PerformanceService performanceService) {
         this.performanceService = performanceService;
     }
-
+    
+    @Operation(summary="공연 제목 전체 조회")
     @GetMapping("")
     public ResponseEntity<List<String>> getAllprfnm() {
         List<String> performanceList = performanceService.getAllprfnm();
@@ -27,6 +30,7 @@ public class PerformanceController {
     }
 
     // 저장된 공연 전체 조회 메서드
+    @Hidden
     @GetMapping("/all-prf")
     public ResponseEntity<List<PerformanceEntity>> getAllPerformance() {
         List<PerformanceEntity> performanceList = performanceService.getAllPerformance();
@@ -37,6 +41,7 @@ public class PerformanceController {
     }
     
     // 공연 정보 상세 조회 메서드
+    @Operation(summary = "공연 id로 공연 조회")
     @GetMapping("/{prfId}")
     public ResponseEntity<PerformanceEntity> getPerformanceById(@PathVariable("prfId") String prfId) {
         try{
@@ -48,6 +53,7 @@ public class PerformanceController {
     }
 
     // 공연 이름으로 정보 찾는 조회 메서드
+    @Operation(summary="공연 제목 조회")
     @PostMapping("/find")
     public ResponseEntity<PerformanceEntity> getPerformanceByName(@RequestBody Map<String, String> map) {
         System.out.println(map);

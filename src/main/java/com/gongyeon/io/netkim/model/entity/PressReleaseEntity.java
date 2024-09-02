@@ -15,7 +15,7 @@ public class PressReleaseEntity {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long pressReleaseId;                      // 식별 index
 
-    @OneToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="prfId")
     private PerformanceEntity performance;  // KOPIS 관리 ID
 
@@ -25,7 +25,7 @@ public class PressReleaseEntity {
     @Column
     private String headLine;                // 보도자료 제목
 
-    @Column(columnDefinition = "TEXT")
+    @Column(length = 4000)
     private String content;                 // 보도자료 내용
 
     @Column

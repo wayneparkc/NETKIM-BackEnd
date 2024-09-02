@@ -1,14 +1,16 @@
 package com.gongyeon.io.netkim.controller;
 
+import com.gongyeon.io.netkim.model.dto.Pleaser;
 import com.gongyeon.io.netkim.model.dto.Reporter;
 import com.gongyeon.io.netkim.model.dto.Upgrader;
 import com.gongyeon.io.netkim.model.entity.MemberEntity;
 import com.gongyeon.io.netkim.model.entity.ReporterEntity;
-import com.gongyeon.io.netkim.model.entity.Role;
 import com.gongyeon.io.netkim.model.repository.MemberRepository;
 import com.gongyeon.io.netkim.model.repository.ReporterRepository;
+import com.gongyeon.io.netkim.model.service.AdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.coyote.BadRequestException;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -17,6 +19,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Tag(name = "관리자 페이지", description = "관리자로서 권한과 default 기자 명단을 관리하는 URL")
@@ -25,18 +29,25 @@ import java.util.List;
 public class AdminController {
     private final MemberRepository memberRepository;
     private final ReporterRepository reporterRepository;
+    private final AdminService adminService;
 
-    public AdminController(MemberRepository memberRepository, ReporterRepository reporterRepository) {
+    public AdminController(MemberRepository memberRepository, ReporterRepository reporterRepository, AdminService adminService) {
         this.memberRepository = memberRepository;
         this.reporterRepository = reporterRepository;
+        this.adminService = adminService;
     }
 
     @Operation(summary = "권한 부여 신청자 조회", description="권한 부여 신청자를 확인하기 위한 메서드")
     @GetMapping("")
-    public ResponseEntity<List<MemberEntity>> getAuthorizationList(){
-        List<MemberEntity> memberList = memberRepository.getLevelUpMembers();
-        if(memberList==null || memberList.isEmpty()){
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<List<Pleaser>> getAuthorizationList(){
+        System.out.println("권한 부여 신청자 조회 : "+ LocalDate.now());
+        List<MemberEntity> memberEntityList = memberRepository.getLevelUpMembers();
+        if(memberEntityList==null || memberEntityList.isEmpty()){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        List<Pleaser> memberList = new ArrayList<>();
+        for(MemberEntity memberEntity : memberEntityList){
+            memberList.add(new Pleaser(memberEntity));
         }
         return new ResponseEntity<>(memberList, HttpStatus.OK);
     }
@@ -44,17 +55,7 @@ public class AdminController {
     @Operation(summary = "권한 부여", description="권한 부여를 위한 메서드")
     @PostMapping("")
     public ResponseEntity<Void> setAuthorization(@RequestBody Upgrader member){
-        // 회사명을 던져줘
-        MemberEntity manager = memberRepository.findByMemberIdx(member.getMemberIdx());
-        manager.setCompany(member.getCompanyName());
-        manager.setRole(Role.MANAGER);
-        memberRepository.save(manager);
-        // 등급 업 시키는 순간에 default 기자 목록 추가하기
-        List<ReporterEntity> defaultReporterList = reporterRepository.findAllByMemberIdx(0);
-        for(ReporterEntity reporter : defaultReporterList){
-            reporter.setMemberIdx(member.getMemberIdx());
-            reporterRepository.save(reporter);
-        }
+        adminService.upgrade(member);
         return ResponseEntity.ok().build();
     }
 
@@ -68,42 +69,28 @@ public class AdminController {
         return new ResponseEntity<>(reporterList, HttpStatus.OK);
     }
 
-    @Operation(description = "Default 기자 명단 추가를 위한 메서드")
+    @Operation(summary = "Default 기자 명단 추가", description = "Default 기자 명단 추가를 위한 메서드")
     @PostMapping("/default-pr")
     public ResponseEntity<Void> setDefaultReporter(@RequestBody Reporter reporter){
-        // 중복검사
-        if(reporterRepository.findByEmailAndMemberIdx(reporter.getEmail(), 0)==null){
+        try {
+            adminService.addDReporter(reporter);
+        } catch (BadRequestException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        
-        ReporterEntity reporterEntity = ReporterEntity.builder()
-                .email(reporter.getEmail())
-                .reporterName(reporter.getReporterName())
-                .press(reporter.getPress())
-                .reporterType(reporter.getRType())
-                .memberIdx(0)
-                .build();
-
-        reporterRepository.save(reporterEntity);
         return ResponseEntity.ok().build();
     }
 
     @Operation(description = "Default 기자 명단 추가를 위한 메서드")
     @PutMapping("/default-pr/{reporterId}")
     public ResponseEntity<Long> updateDefaultReporter(@PathVariable("reporterId") long reporterId, @RequestBody Reporter reporter){
-        ReporterEntity reporterEntity = reporterRepository.findByReporterId(reporterId);
-        reporterEntity.setReporterName(reporter.getReporterName());
-        reporterEntity.setPress(reporter.getPress());
-        reporterEntity.setEmail(reporter.getEmail());
-        reporterEntity.setReporterType(reporter.getRType());
-        reporterRepository.save(reporterEntity);
-        return new ResponseEntity<>(reporterEntity.getReporterId(), HttpStatus.OK);
+        long result = adminService.updateDReporter(reporterId, reporter);
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @Operation(description = "Default 기자 명단 삭제를 위한 메서드")
     @DeleteMapping("/default-pr/{reporterId}")
     public ResponseEntity<Void> deleteDefaultReporter(@PathVariable("reporterId") long reporterId){
-        reporterRepository.deleteByReporterIdAndMemberIdx(reporterId, 0);
+        adminService.deleteDReporter(reporterId);
         return ResponseEntity.ok().build();
     }
 

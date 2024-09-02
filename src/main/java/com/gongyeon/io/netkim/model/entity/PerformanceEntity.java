@@ -105,4 +105,23 @@ public class PerformanceEntity {
 //    }
 
 
+    @Override
+    public String toString() {
+        return "PerformanceEntity{" +
+                "prfid=" + prfid +
+                ", kopisId='" + kopisId + '\'' +
+                ", prfnm='" + prfnm + '\'' +
+                ", prfstate='" + prfstate + '\'' +
+                ", prfdfrom=" + prfdfrom +
+                ", prfdto=" + prfdto +
+                ", updateDate=" + updateDate +
+                ", poster='" + poster + '\'' +
+                ", fcltynm='" + fcltynm + '\'' +
+                ", prfcast='" + prfcast + '\'' +
+                ", openrun=" + openrun +
+                ", prfruntime=" + prfruntime +
+                ", feature='" + feature + '\'' +
+                ", entrpsnm='" + entrpsnm + '\'' +
+                '}';
+    }
 }

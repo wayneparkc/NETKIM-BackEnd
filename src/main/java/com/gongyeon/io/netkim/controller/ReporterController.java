@@ -2,7 +2,6 @@ package com.gongyeon.io.netkim.controller;
 
 import com.gongyeon.io.netkim.model.dto.Reporter;
 import com.gongyeon.io.netkim.model.entity.ReporterEntity;
-import com.gongyeon.io.netkim.model.jwt.JwtUtil;
 import com.gongyeon.io.netkim.model.repository.ReporterRepository;
 import com.gongyeon.io.netkim.model.service.ReporterService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,25 +16,23 @@ import java.util.List;
 @RestController
 @RequestMapping("/api-reporter")
 public class ReporterController {
-    private final JwtUtil jwtUtil;
     private final ReporterRepository reporterRepository;
     private final ReporterService reporterService;
 
-    public ReporterController(JwtUtil jwtUtil, ReporterRepository reporterRepository, ReporterService reporterService) {
-        this.jwtUtil = jwtUtil;
+    public ReporterController(ReporterRepository reporterRepository, ReporterService reporterService) {
         this.reporterRepository = reporterRepository;
         this.reporterService = reporterService;
     }
 
     @Operation(summary = "기자 명단 조회", description = "사용자에게 등록된 기자 명단 조회를 위한 메서드")
     @GetMapping("")
-    public ResponseEntity<List<ReporterEntity>> getAllReporters(@RequestHeader(value = HttpHeaders.AUTHORIZATION) String token) {
-        long memberIdx = jwtUtil.getMemberIdx(token.split(" ")[1]);
-        List<ReporterEntity> reporterList = reporterRepository.findAllByMemberIdx(memberIdx);
-        if (reporterList == null || reporterList.isEmpty()) {
+    public ResponseEntity<List<ReporterEntity>> getAllReporters(@RequestHeader HttpHeaders headers) {
+        try{
+            return new ResponseEntity<>(reporterService.selectAllReporter(headers), HttpStatus.OK);
+        }catch(BadRequestException e) {
+            System.out.println("기자 명단에 조회자 없음");
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>(reporterList, HttpStatus.OK);
     }
 
     @Operation(summary="reporterId로 상세조회", description="기자 정보 상세 확인을 위한 메서드 -> 등록자와 무관하게 조회 가능")

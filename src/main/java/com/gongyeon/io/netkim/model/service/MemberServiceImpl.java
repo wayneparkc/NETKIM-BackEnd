@@ -2,7 +2,6 @@ package com.gongyeon.io.netkim.model.service;
 
 import com.gongyeon.io.netkim.model.dto.Member;
 import com.gongyeon.io.netkim.model.entity.MemberEntity;
-import com.gongyeon.io.netkim.model.entity.ReporterEntity;
 import com.gongyeon.io.netkim.model.entity.Role;
 import com.gongyeon.io.netkim.model.jwt.JwtUtil;
 import com.gongyeon.io.netkim.model.repository.MemberRepository;
@@ -10,7 +9,6 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
-import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -29,20 +27,19 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Duration;
-import java.util.List;
 import java.util.Random;
+import java.util.StringTokenizer;
 
 @Service
 @RequiredArgsConstructor
 public class MemberServiceImpl implements MemberService, UserDetailsService {
     private final MemberRepository memberRepository;
-    private final MailService mailService;
     private final JwtUtil jwtUtil;
     private final StringRedisTemplate redisTemplate;
     private final JavaMailSender mailSender;
 
     @Override
-    public String signup(Member member) {
+    public void signup(Member member) {
         // DB Entity로 변신
         MemberEntity memberEntity = member.toEntity();
         // Role Default 값 지정
@@ -52,8 +49,6 @@ public class MemberServiceImpl implements MemberService, UserDetailsService {
         memberEntity.setPassword(encPassword);
         // 저장하기
         memberRepository.save(memberEntity);
-        // 회원가입 완료 이후 토큰 발급 이후 return
-        return jwtUtil.createToken(memberEntity.getMemberIdx(), memberEntity.getRole().name());
     }
 
     @Override
@@ -68,17 +63,14 @@ public class MemberServiceImpl implements MemberService, UserDetailsService {
     }
 
     @Override
-    public void upgradePlease(HttpHeaders headers, MultipartFile certificate) throws IOException, NotFoundException {
+    @Transactional
+    public void upgradePlease(HttpHeaders headers, MultipartFile certificate) throws IOException {
         if(certificate.isEmpty() || certificate.getSize()==0) {
             throw new FileNotFoundException();
         }
 
         long memberIdx = jwtUtil.getMemberIdx(headers.getFirst("Authorization").split(" ")[1]);
         MemberEntity member = memberRepository.findByMemberIdx(memberIdx);
-
-        if(member == null) {
-            throw new NotFoundException();
-        }
         if(!member.getRole().equals(Role.MEMBER)) {
             throw new BadRequestException();
         }
@@ -91,8 +83,53 @@ public class MemberServiceImpl implements MemberService, UserDetailsService {
         // 중복 없이 서버에서 파일을 찾을 수 있도록 설정하기
         String today = Long.toString(System.currentTimeMillis());
 
-        String fileId = today + "_" + certificate.getOriginalFilename();
-        member.setCertificateImg("https://gongyeon.kro.kr/api-file/press/"+fileId);
+        StringTokenizer st = new StringTokenizer(certificate.getOriginalFilename(), ".");
+
+        String extension = "";
+        while(st.hasMoreTokens()) {
+            extension = st.nextToken();
+        }
+
+        String fileId = today + "_cert." + extension;
+        member.setCertificateImg("https://gongyeon.kro.kr/api-file/cert/"+fileId);
+
+        System.out.println(videoFolder.getAbsolutePath());
+        certificate.transferTo(new File(videoFolder.getAbsolutePath(), fileId));
+
+        memberRepository.save(member);
+    }
+
+    @Override
+    @Transactional
+    public void upgradePlease(HttpHeaders headers, MultipartFile certificate, String company) throws IOException {
+        if(certificate.isEmpty() || certificate.getSize()==0) {
+            throw new FileNotFoundException();
+        }
+
+        long memberIdx = jwtUtil.getMemberIdx(headers.getFirst("Authorization").split(" ")[1]);
+        MemberEntity member = memberRepository.findByMemberIdx(memberIdx);
+        member.setCompany(company);
+        if(!member.getRole().equals(Role.MEMBER)) {
+            throw new BadRequestException();
+        }
+
+        File videoFolder = new File("data/certificates/");
+        if (!videoFolder.exists()) {
+            videoFolder.mkdir();
+        }
+
+        // 중복 없이 서버에서 파일을 찾을 수 있도록 설정하기
+        String today = Long.toString(System.currentTimeMillis());
+
+        StringTokenizer st = new StringTokenizer(certificate.getOriginalFilename(), ".");
+
+        String extension = "";
+        while(st.hasMoreTokens()) {
+            extension = st.nextToken();
+        }
+
+        String fileId = today + "_cert." + extension;
+        member.setCertificateImg("https://gongyeon.kro.kr/api-file/cert/"+fileId);
 
         System.out.println(videoFolder.getAbsolutePath());
         certificate.transferTo(new File(videoFolder.getAbsolutePath(), fileId));
@@ -117,7 +154,7 @@ public class MemberServiceImpl implements MemberService, UserDetailsService {
              <p>이메일 인증 거부하실 수 있으나, 보도자료 발송 등 이메일을 활용한 다양한 서비스의 접근이 제한될 수 있습니다.</p>
              <p>인증을 희망하시는 경우 아래의 버튼을 클릭해주십시오.</p>
              <div style="border-radius:4px;background-color:#2196f3;display:block;color:#fff;line-height:26px;padding:8px 22px;margin-top:20px;text-align:center">
-                <a href='%sapi-member/verify?vnumber=%s&email=%s'>
+                <a href='%sapi-member/verify?vnumber=%s&email=%s' style="text-decoration:none;color:RGB(255,255,255);">
                     <b>메일 인증하기</b>
                 </a>
              </div>
@@ -125,7 +162,7 @@ public class MemberServiceImpl implements MemberService, UserDetailsService {
 
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
-        helper.setFrom("admin@gongyeon.kro.kr");
+        helper.setFrom("admin@gongyeon.kro");
         helper.setTo(member.getEmail());
         helper.setSubject(title);
         helper.setText(content, true);
@@ -149,6 +186,17 @@ public class MemberServiceImpl implements MemberService, UserDetailsService {
             removeCertificationNumber(email);
         }
         return memberRepository.findByEmail(email).isCertify();
+    }
+
+    @Override
+    public void checkLevel(HttpHeaders headers) throws BadRequestException {
+        long memberIdx = jwtUtil.getMemberIdx(headers.getFirst("Authorization").split(" ")[1]);
+        MemberEntity member = memberRepository.findByMemberIdx(memberIdx);
+        if(!Role.MEMBER.name().equals(member.getRole().name())){
+            throw new BadRequestException("이미 등업된 회원입니다.");
+        }else if(member.getCertificateImg()!=null) {
+            throw new NullPointerException("검증이 진행중인 회원입니다.");
+        }
     }
 
     private String getCertificationNumber(String email) {

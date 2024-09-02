@@ -13,6 +13,5 @@ public interface PressReleaseService {
     PressReleaseEntity getDetailPressRelease(HttpHeaders headers, long pressReleaseId) throws ChangeSetPersister.NotFoundException;
     PressReleaseEntity previewRelease(PressRelease pressRelease);
     PressReleaseEntity makeRelease(HttpHeaders headers, PressRelease pressRelease) throws Exception;
-    String getReleaseFile() throws Exception;
     int sendReleaseFile(HttpHeaders headers, long pressReleaseId) throws MessagingException;
 }
