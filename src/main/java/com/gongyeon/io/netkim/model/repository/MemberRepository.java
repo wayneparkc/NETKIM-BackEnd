@@ -1,6 +1,5 @@
 package com.gongyeon.io.netkim.model.repository;
 
-import com.gongyeon.io.netkim.model.dto.Pleaser;
 import com.gongyeon.io.netkim.model.entity.MemberEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

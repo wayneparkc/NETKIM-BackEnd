@@ -86,12 +86,12 @@ public class PerformanceServiceImpl implements PerformanceService {
                 // XML 호출값 URL세팅
                 StringBuilder apiQuery = new StringBuilder("http://www.kopis.or.kr/openApi/restful/pblprfr");				// URL
                 apiQuery.append("?service=").append(key); 			// Service Key
-                apiQuery.append("&").append(URLEncoder.encode("stdate", "UTF-8")).append("=").append(URLEncoder.encode("20160101", "UTF-8"));	// 검색 시작일
-                apiQuery.append("&").append(URLEncoder.encode("eddate", "UTF-8")).append("=").append(URLEncoder.encode("20251231", "UTF-8"));	// 검색 종료일
-                apiQuery.append("&").append(URLEncoder.encode("cpage", "UTF-8")).append("=").append(URLEncoder.encode(Integer.toString(page), "UTF-8")); 			// 페이지번호
-                apiQuery.append("&").append(URLEncoder.encode("rows", "UTF-8")).append("=").append(URLEncoder.encode("1000", "UTF-8"));			// 페이지당 목록 수
-                apiQuery.append("&").append(URLEncoder.encode("shcate", "UTF-8")).append("=").append(URLEncoder.encode("GGGA", "UTF-8"));		// 장르명(뮤지컬 고정)
-                apiQuery.append("&").append(URLEncoder.encode("newsql", "UTF-8")).append("=").append(URLEncoder.encode("Y", "UTF-8")); 		// 신규생성 메시지
+                apiQuery.append("&").append(URLEncoder.encode("stdate", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode("20160101", StandardCharsets.UTF_8));	// 검색 시작일
+                apiQuery.append("&").append(URLEncoder.encode("eddate", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode("20251231", StandardCharsets.UTF_8));	// 검색 종료일
+                apiQuery.append("&").append(URLEncoder.encode("cpage", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode(Integer.toString(page), StandardCharsets.UTF_8)); 			// 페이지번호
+                apiQuery.append("&").append(URLEncoder.encode("rows", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode("1000", StandardCharsets.UTF_8));			// 페이지당 목록 수
+                apiQuery.append("&").append(URLEncoder.encode("shcate", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode("GGGA", StandardCharsets.UTF_8));		// 장르명(뮤지컬 고정)
+                apiQuery.append("&").append(URLEncoder.encode("newsql", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode("Y", StandardCharsets.UTF_8)); 		// 신규생성 메시지
 //                System.out.println(apiQuery);																	// Query문 테스트
 
                 DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();

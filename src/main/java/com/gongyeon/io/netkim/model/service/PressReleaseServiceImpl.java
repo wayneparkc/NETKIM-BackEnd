@@ -208,7 +208,7 @@ public class PressReleaseServiceImpl implements PressReleaseService {
     private String makeHeadLine(PerformanceEntity performance, PressRelease pressRelease) {
         String title = performance.getPrfnm().replaceAll("\\[.*?\\]|\\(.*?\\)", "").trim();
         StringBuilder sb = new StringBuilder();
-        if(pressRelease.getKey()!=null || !pressRelease.getKey().equals("")) {
+        if(pressRelease.getKey()!=null) {
             sb.append(pressRelease.getKey()).append(", ");
         }
         sb.append("뮤지컬 '").append(title).append("'").append(" ").append(performance.getPrfdfrom().getMonthValue()).append("월 ").append(performance.getPrfdfrom().getDayOfMonth()).append("일 개막");
@@ -243,7 +243,7 @@ public class PressReleaseServiceImpl implements PressReleaseService {
         if(pressRelease.getSeats() > 1000){
             content.append(pressRelease.getSeats()).append(" 이상의 관객이 찾아와 관람하였으며,");
         }
-        content.append(" 오는 ").append(stDate.getMonthValue()).append("월 ").append(stDate.getDayOfMonth()).append("일 부터 ").append(endDate.getMonthValue()).append("월 ").append(endDate.getDayOfMonth()).append("일 까지 ").append(performance.getFcltynm()).append("에서 공연된다. //끝//");;
+        content.append(" 오는 ").append(stDate.getMonthValue()).append("월 ").append(stDate.getDayOfMonth()).append("일 부터 ").append(endDate.getMonthValue()).append("월 ").append(endDate.getDayOfMonth()).append("일 까지 ").append(performance.getFcltynm()).append("에서 공연된다. //끝//");
 
         return content.toString();
     }

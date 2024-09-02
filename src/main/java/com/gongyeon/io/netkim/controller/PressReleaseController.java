@@ -2,7 +2,6 @@ package com.gongyeon.io.netkim.controller;
 
 import com.gongyeon.io.netkim.model.dto.PressRelease;
 import com.gongyeon.io.netkim.model.entity.PressReleaseEntity;
-import com.gongyeon.io.netkim.model.repository.PressReleaseRepository;
 import com.gongyeon.io.netkim.model.service.PressReleaseService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.mail.MessagingException;
